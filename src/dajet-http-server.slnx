@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="dajet-http-client/dajet-http-client.csproj" Id="fe6bf2b2-09d9-4d7b-97eb-2f9967062f1f" />
+  <Project Path="dajet-http-model/dajet-http-model.csproj" Id="6830c2fc-f286-450e-ab11-591b81807961" />
+  <Project Path="dajet-http-server/dajet-http-server.csproj" />
+</Solution>

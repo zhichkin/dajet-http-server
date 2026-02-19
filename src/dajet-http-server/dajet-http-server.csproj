@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>DaJet.Http.Server</RootNamespace>
+    <AssemblyName>dajet</AssemblyName>
+    <AssemblyTitle>DaJet Http Server</AssemblyTitle>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DaJet.Metadata" Version="5.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\dajet-http-model\dajet-http-model.csproj" />
+  </ItemGroup>
+
+</Project>
