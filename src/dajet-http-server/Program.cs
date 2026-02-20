@@ -1,5 +1,6 @@
 using DaJet.Data;
 using DaJet.Http.Model;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.Data.Sqlite;
 using MetadataCache = DaJet.Metadata.MetadataProvider;
 
@@ -14,11 +15,16 @@ namespace DaJet.Http.Server
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.Host.UseSystemd();
+            builder.Host.UseWindowsService();
+
             // Add services to the container.
 
             builder.Services.AddSingleton(new RepositoryFactory(in CONNECTION_STRING));
 
             builder.Services.AddControllers();
+
+            builder.Services.AddCors(ConfigureCors);
 
             var app = builder.Build();
 
@@ -28,11 +34,22 @@ namespace DaJet.Http.Server
 
             app.UseHttpsRedirection();
 
+            app.UseCors();
+            
+            //app.UseAuthentication();
+
             app.UseAuthorization();
 
             app.MapControllers();
 
             app.Run();
+        }
+        private static void ConfigureCors(CorsOptions options)
+        {
+            options.AddDefaultPolicy(builder =>
+            {
+                builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+            });
         }
         private static string BuildAppDatabaseConnectionString()
         {

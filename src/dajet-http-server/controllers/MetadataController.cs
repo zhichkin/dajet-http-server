@@ -243,9 +243,9 @@ namespace DaJet.Http.Server
 
             return Content(json);
         }
-        
-        [HttpGet("{database}/{configuration}/{type}/{name}")]
-        public ActionResult GetMetadataObject([FromRoute] string database, [FromRoute] string configuration, [FromRoute] string type, [FromRoute] string name)
+
+        [HttpGet("entity/{database}/{code:int}")]
+        public ActionResult GetMetadataObjectByCode([FromRoute] string database, [FromRoute] int code)
         {
             MetadataProvider provider = MetadataCache.Get(in database);
 
@@ -254,9 +254,22 @@ namespace DaJet.Http.Server
                 return BadRequest($"База данных '{database}' не найдена на сервере DaJet.");
             }
 
-            Configuration config = (configuration == "main")
-                ? provider.GetConfiguration()
-                : provider.GetConfiguration(in configuration);
+            EntityDefinition entity = provider.GetMetadataObject(code);
+
+            string json = JsonSerializer.Serialize(entity, JsonOptions);
+
+            return Content(json);
+        }
+
+        [HttpGet("entity/{database}/{type}/{name}")]
+        public ActionResult GetMetadataObjectByName([FromRoute] string database, [FromRoute] string configuration, [FromRoute] string type, [FromRoute] string name)
+        {
+            MetadataProvider provider = MetadataCache.Get(in database);
+
+            if (provider is null)
+            {
+                return BadRequest($"База данных '{database}' не найдена на сервере DaJet.");
+            }
 
             EntityDefinition entity = provider.GetMetadataObject($"{type}.{name}");
 
@@ -265,8 +278,8 @@ namespace DaJet.Http.Server
             return Content(json);
         }
 
-        [HttpGet("{database}/{configuration}/{type}/{name}/{property}")]
-        public ActionResult GetPropertyDataType([FromRoute] string database, [FromRoute] string configuration, [FromRoute] string type, [FromRoute] string name, [FromRoute] string property)
+        [HttpPost("references/{database}")]
+        public ActionResult GetPropertyDataType([FromRoute] string database, [FromBody] List<string> references)
         {
             MetadataProvider provider = MetadataCache.Get(in database);
 
@@ -275,23 +288,16 @@ namespace DaJet.Http.Server
                 return BadRequest($"База данных '{database}' не найдена на сервере DaJet.");
             }
 
-            Configuration config = (configuration == "main")
-                ? provider.GetConfiguration()
-                : provider.GetConfiguration(in configuration);
+            List<Guid> list = new(references.Count);
 
-            EntityDefinition entity = provider.GetMetadataObject($"{type}.{name}");
-
-            PropertyDefinition definition = entity.Properties
-                .Where(p => p.Name == property).FirstOrDefault();
-
-            if (definition is null)
+            foreach (string reference in references)
             {
-                return NotFound();
+                list.Add(new Guid(reference));
             }
 
-            List<string> references = provider.ResolveReferences(definition.References);
+            List<string> names = provider.ResolveReferences(list);
 
-            string json = JsonSerializer.Serialize(references, JsonOptions);
+            string json = JsonSerializer.Serialize(names, JsonOptions);
 
             return Content(json);
         }
