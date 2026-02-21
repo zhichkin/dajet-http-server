@@ -1,10 +1,12 @@
 using DaJet.Data;
 using DaJet.Http.Model;
+using DaJet.Json;
 using DaJet.Metadata;
 using DaJet.TypeSystem;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.Unicode;
 using MetadataCache = DaJet.Metadata.MetadataProvider;
 
@@ -29,6 +31,9 @@ namespace DaJet.Http.Server
             {
                 throw new InvalidOperationException("Required DataSourceRepository is not found.");
             }
+
+            JsonOptions.Converters.Add(new DataTypeJsonConverter());
+            JsonOptions.Converters.Add(new JsonStringEnumConverter());
         }
 
         #region "Управление списком баз данных и кэшем метаданных"
@@ -156,6 +161,8 @@ namespace DaJet.Http.Server
         }
 
         #endregion
+
+        #region "Интерфейс DaJet Metadata"
 
         [HttpGet("{database}")]
         public ActionResult GetConfigurations([FromRoute] string database)
@@ -301,5 +308,7 @@ namespace DaJet.Http.Server
 
             return Content(json);
         }
+        
+        #endregion
     }
 }

@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DaJet.Metadata" Version="5.0.4" />
+    <PackageReference Include="DaJet.Metadata" Version="5.0.5" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="10.0.3" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.3" />
   </ItemGroup>
