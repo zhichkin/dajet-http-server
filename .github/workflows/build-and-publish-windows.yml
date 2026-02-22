@@ -1,4 +1,4 @@
-name: Build & Publish DaJet HTTP Server for Windows
+name: Publish DaJet HTTP Server for Windows
 
 on:
   workflow_dispatch:
