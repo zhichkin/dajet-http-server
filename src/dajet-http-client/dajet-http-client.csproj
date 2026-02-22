@@ -2,9 +2,19 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <RootNamespace>dajet_http_client</RootNamespace>
+    <RootNamespace>DaJet.Http.Client</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <Nullable>disable</Nullable>
+    <AssemblyName>DaJet.Http.Client</AssemblyName>
+    <AssemblyTitle>DaJet HTTP Client</AssemblyTitle>
+    <Title>DaJet HTTP Client</Title>
+    <Version>4.0.0</Version>
+    <Authors>Zhichkin</Authors>
+    <Description>DaJet HTTP Client (web api)</Description>
+    <Copyright>Zhichkin © 2026</Copyright>
+    <PackageProjectUrl>https://zhichkin.github.io/</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/zhichkin/dajet-http-server</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
 </Project>

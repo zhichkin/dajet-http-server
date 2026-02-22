@@ -5,12 +5,20 @@
     <Nullable>disable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>DaJet.Http.Server</RootNamespace>
-    <AssemblyName>dajet</AssemblyName>
-    <AssemblyTitle>DaJet Http Server</AssemblyTitle>
+    <AssemblyName>DaJet.Http.Server</AssemblyName>
+    <AssemblyTitle>DaJet HTTP Server</AssemblyTitle>
+    <Title>DaJet HTTP Server</Title>
+    <Version>4.0.0</Version>
+    <Authors>Zhichkin</Authors>
+    <Description>DaJet HTTP server (web api)</Description>
+    <Copyright>Zhichkin © 2026</Copyright>
+    <PackageProjectUrl>https://zhichkin.github.io/</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/zhichkin/dajet-http-server</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DaJet.Metadata" Version="5.0.5" />
+    <PackageReference Include="DaJet.Metadata" Version="5.0.6" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="10.0.3" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.3" />
   </ItemGroup>

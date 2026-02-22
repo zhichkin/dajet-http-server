@@ -13,33 +13,23 @@ namespace DaJet.Http.Server
 
         public static void Main(string[] args)
         {
-            var builder = WebApplication.CreateBuilder(args);
+            WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
             builder.Host.UseSystemd();
             builder.Host.UseWindowsService();
 
-            // Add services to the container.
-
             builder.Services.AddSingleton(new RepositoryFactory(in CONNECTION_STRING));
-
             builder.Services.AddControllers();
-
             builder.Services.AddCors(ConfigureCors);
 
-            var app = builder.Build();
+            WebApplication app = builder.Build();
 
             InitializeMetadataCache(app.Services);
 
-            // Configure the HTTP request pipeline.
-
             app.UseHttpsRedirection();
-
             app.UseCors();
-            
             //app.UseAuthentication();
-
-            app.UseAuthorization();
-
+            //app.UseAuthorization();
             app.MapControllers();
 
             app.Run();
@@ -69,7 +59,7 @@ namespace DaJet.Http.Server
 
             if (repository is null)
             {
-                throw new InvalidOperationException("Required DataSourceRepository is not found.");
+                throw new InvalidOperationException("Обязательный сервис 'DataSourceRepository' не найден.");
             }
 
             if (!repository.TryGet(out List<DataSourceRecord> list, out string error))
@@ -81,7 +71,16 @@ namespace DaJet.Http.Server
             {
                 if (Enum.TryParse(record.Type, out DataSourceType dataSource))
                 {
-                    MetadataCache.Add(record.Name, dataSource, record.Path);
+                    try
+                    {
+                        MetadataCache.Add(record.Name, dataSource, record.Path);
+                    }
+                    catch (Exception exception)
+                    {
+                        string message = $"Ошибка регистрации источника данных '{record.Name}': {exception.Message}";
+
+                        FileLogger.Default.Write(message);
+                    }
                 }
             }
         }
