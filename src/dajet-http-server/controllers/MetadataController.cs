@@ -155,7 +155,7 @@ namespace DaJet.Http.Server
         }
 
         [HttpGet("entity/{database}/{type}/{name}")]
-        public ActionResult GetMetadataObjectByName([FromRoute] string database, [FromRoute] string configuration, [FromRoute] string type, [FromRoute] string name)
+        public ActionResult GetMetadataObjectByName([FromRoute] string database, [FromRoute] string type, [FromRoute] string name)
         {
             MetadataProvider provider = MetadataCache.Get(in database);
 

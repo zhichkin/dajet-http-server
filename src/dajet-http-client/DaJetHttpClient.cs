@@ -8,6 +8,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Unicode;
+using System.Xml.Linq;
 
 namespace DaJet.Http.Client
 {
@@ -122,6 +123,113 @@ namespace DaJet.Http.Client
             string message = await response.Content.ReadAsStringAsync();
 
             return new RequestResult(false, in message);
+        }
+
+        public async Task<RequestResult<List<InfoBaseConfig>>> GetConfigurations(string database)
+        {
+            string url = $"/md/{database}";
+
+            HttpResponseMessage response = await _client.GetAsync(url);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                string error = await response.Content.ReadAsStringAsync();
+
+                return new RequestResult<List<InfoBaseConfig>>(error);
+            }
+
+            var result = await response.Content.ReadFromJsonAsync<List<InfoBaseConfig>>();
+
+            return new RequestResult<List<InfoBaseConfig>>(result);
+        }
+        public async Task<RequestResult<List<string>>> GetMetadataNames(string database, string type)
+        {
+            string url = $"/md/names/{database}/{type}";
+
+            HttpResponseMessage response = await _client.GetAsync(url);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                string error = await response.Content.ReadAsStringAsync();
+
+                return new RequestResult<List<string>>(error);
+            }
+
+            var result = await response.Content.ReadFromJsonAsync<List<string>>();
+
+            return new RequestResult<List<string>>(result);
+        }
+        public async Task<RequestResult<List<string>>> GetMetadataNames(string database, string configuration, string type)
+        {
+            string url = $"/md/names/{database}/{configuration}/{type}";
+
+            HttpResponseMessage response = await _client.GetAsync(url);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                string error = await response.Content.ReadAsStringAsync();
+
+                return new RequestResult<List<string>>(error);
+            }
+
+            var result = await response.Content.ReadFromJsonAsync<List<string>>();
+
+            return new RequestResult<List<string>>(result);
+        }
+        public async Task<RequestResult<EntityDefinition>> GetMetadataObject(string database, int code)
+        {
+            string url = $"/md/entity/{database}/{code}";
+
+            HttpResponseMessage response = await _client.GetAsync(url);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                string error = await response.Content.ReadAsStringAsync();
+
+                return new RequestResult<EntityDefinition>(error);
+            }
+
+            var result = await response.Content.ReadFromJsonAsync<EntityDefinition>();
+
+            return new RequestResult<EntityDefinition>(result);
+        }
+        public async Task<RequestResult<EntityDefinition>> GetMetadataObject(string database, string type, string name)
+        {
+            string url = $"/md/entity/{database}/{type}/{name}";
+
+            HttpResponseMessage response = await _client.GetAsync(url);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                string error = await response.Content.ReadAsStringAsync();
+
+                return new RequestResult<EntityDefinition>(error);
+            }
+
+            var result = await response.Content.ReadFromJsonAsync<EntityDefinition>();
+
+            return new RequestResult<EntityDefinition>(result);
+        }
+        public async Task<RequestResult<List<string>>> ResolveReferences(string database, List<Guid> references)
+        {
+            string url = $"/md/references/{database}";
+
+            string json = JsonSerializer.Serialize(references);
+
+            StringContent content = new(json, Encoding.UTF8, "application/json");
+
+            HttpResponseMessage response = await _client.PostAsync(url, content);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                string error = await response.Content.ReadAsStringAsync();
+
+                return new RequestResult<List<string>>(error);
+            }
+
+            var result = await response.Content.ReadFromJsonAsync<List<string>>();
+
+            return new RequestResult<List<string>>(result);
         }
 
         public async Task<string> CompareMetadataAndDatabaseSchema(string infobase)

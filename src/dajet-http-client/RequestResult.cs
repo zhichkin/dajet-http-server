@@ -13,4 +13,20 @@
         public bool Success { get; }
         public string Message { get; } = string.Empty;
     }
+
+    public sealed class RequestResult<T>
+    {
+        internal RequestResult(T result)
+        {
+            Success = true;
+            Result = result;
+        }
+        internal RequestResult(in string error)
+        {
+            Message = error;
+        }
+        public T Result { get; } = default;
+        public bool Success { get; }
+        public string Message { get; } = string.Empty;
+    }
 }
