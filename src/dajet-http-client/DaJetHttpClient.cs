@@ -8,7 +8,6 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Unicode;
-using System.Xml.Linq;
 
 namespace DaJet.Http.Client
 {
@@ -125,6 +124,23 @@ namespace DaJet.Http.Client
             return new RequestResult(false, in message);
         }
 
+        public async Task<RequestResult<List<string>>> GetDatabaseNames()
+        {
+            string url = "/md";
+
+            HttpResponseMessage response = await _client.GetAsync(url);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                string error = await response.Content.ReadAsStringAsync();
+
+                return new RequestResult<List<string>>(error);
+            }
+
+            var result = await response.Content.ReadFromJsonAsync<List<string>>();
+
+            return new RequestResult<List<string>>(result);
+        }
         public async Task<RequestResult<List<InfoBaseConfig>>> GetConfigurations(string database)
         {
             string url = $"/md/{database}";
