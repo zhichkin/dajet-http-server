@@ -2,4 +2,5 @@
   <Project Path="dajet-http-client/dajet-http-client.csproj" Id="fe6bf2b2-09d9-4d7b-97eb-2f9967062f1f" />
   <Project Path="dajet-http-model/dajet-http-model.csproj" Id="6830c2fc-f286-450e-ab11-591b81807961" />
   <Project Path="dajet-http-server/dajet-http-server.csproj" />
+  <Project Path="test/test.csproj" Id="5eb488d7-cd21-44ca-8b30-b3417701abe4" />
 </Solution>

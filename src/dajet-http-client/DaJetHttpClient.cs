@@ -205,7 +205,7 @@ namespace DaJet.Http.Client
                 return new RequestResult<EntityDefinition>(error);
             }
 
-            var result = await response.Content.ReadFromJsonAsync<EntityDefinition>();
+            var result = await response.Content.ReadFromJsonAsync<EntityDefinition>(JsonOptions);
 
             return new RequestResult<EntityDefinition>(result);
         }
@@ -222,7 +222,7 @@ namespace DaJet.Http.Client
                 return new RequestResult<EntityDefinition>(error);
             }
 
-            var result = await response.Content.ReadFromJsonAsync<EntityDefinition>();
+            var result = await response.Content.ReadFromJsonAsync<EntityDefinition>(JsonOptions);
 
             return new RequestResult<EntityDefinition>(result);
         }
