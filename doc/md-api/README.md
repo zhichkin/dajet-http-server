@@ -161,7 +161,7 @@ curl -X GET http://localhost:5000/md/entity/MS_TEST/712
 // ...
 ```
 
-#### GET ```/md/references/{database}```
+#### POST ```/md/references/{database}```
 
 Расшифровывает ссылки свойства "References" объекта метаданных.
 
@@ -202,7 +202,7 @@ curl -X GET http://localhost:5000/md/entity/MS_TEST/712
 
 **Запрос**
 ```
-curl -v -X GET -H "Content-Type: application/json; charset=utf-8" -d @references.json http://localhost:5000/md/references/MS_TEST
+curl -v -X POST -H "Content-Type: application/json; charset=utf-8" -d @references.json http://localhost:5000/md/references/MS_TEST
 ```
 
 Тело запроса в кодировке UTF-8, файл references.json
