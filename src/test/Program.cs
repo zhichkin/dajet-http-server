@@ -13,7 +13,7 @@ namespace test
             });
 
             Task<RequestResult<EntityDefinition>> task = client.GetMetadataObject(
-                "pg-test", "Справочник", "Номенклатура");
+                "PG_UNF", "РегистрНакопления", "АвансовыеПлатежиИностранцевПоНДФЛ");
 
             task.Wait();
 
@@ -26,6 +26,20 @@ namespace test
             else
             {
                 Console.WriteLine(response.Message);
+            }
+
+            PropertyDefinition property = response.Result.Properties
+                .Where(p => p.Name == "Регистратор").FirstOrDefault();
+
+            Task<RequestResult<List<string>>> task2 = client.ResolveReferences("PG_UNF", property.References);
+
+            task2.Wait();
+
+            RequestResult<List<string>> result = task2.Result;
+
+            foreach (string name in result.Result)
+            {
+                Console.WriteLine(name);
             }
         }
     }

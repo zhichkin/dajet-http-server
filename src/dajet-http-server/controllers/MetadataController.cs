@@ -176,7 +176,7 @@ namespace DaJet.Http.Server
             return Content(json);
         }
 
-        [HttpGet("references/{database}")]
+        [HttpPost("references/{database}")]
         public ActionResult GetPropertyDataType([FromRoute] string database, [FromBody] List<string> references)
         {
             MetadataProvider provider = MetadataCache.Get(in database);

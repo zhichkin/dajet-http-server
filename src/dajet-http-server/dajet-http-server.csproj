@@ -8,7 +8,7 @@
     <AssemblyName>DaJet.Http.Server</AssemblyName>
     <AssemblyTitle>DaJet HTTP Server</AssemblyTitle>
     <Title>DaJet HTTP Server</Title>
-    <Version>4.0.1</Version>
+    <Version>4.0.2</Version>
     <Authors>Zhichkin</Authors>
     <Description>DaJet HTTP server (web api)</Description>
     <Copyright>Zhichkin © 2026</Copyright>
@@ -18,7 +18,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DaJet.Metadata" Version="5.0.6" />
+    <PackageReference Include="DaJet.Metadata" Version="5.0.7" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="10.0.3" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.3" />
   </ItemGroup>
