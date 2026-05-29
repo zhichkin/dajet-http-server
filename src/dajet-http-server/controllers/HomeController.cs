@@ -3,6 +3,9 @@ using DaJet.Http.Model;
 using DaJet.Json;
 using DaJet.Metadata;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
+using Microsoft.Data.Sqlite;
+using Npgsql;
 using System.Reflection;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -72,7 +75,7 @@ namespace DaJet.Http.Server
                 {
                     Name = provider.Name,
                     DataSource = provider.DataSource.ToString(),
-                    ConnectionString = provider.ConnectionString,
+                    ConnectionString = RemovePasswordFromConnectionString(in provider),
                     LastUpdated = provider.LastUpdated,
                     IsInitialized = provider.IsInitialized
                 });
@@ -81,6 +84,53 @@ namespace DaJet.Http.Server
             string json = JsonSerializer.Serialize(list, JsonOptions);
 
             return Content(json);
+        }
+        private static string RemovePasswordFromConnectionString(in MetadataProviderStatus provider)
+        {
+            try
+            {
+                if (provider.DataSource == DataSourceType.SqlServer)
+                {
+                    SqlConnectionStringBuilder mssql = new(provider.ConnectionString);
+
+                    if (!string.IsNullOrEmpty(mssql.Password))
+                    {
+                        mssql.Password = string.Empty;
+                    }
+
+                    return mssql.ToString();
+                }
+
+                if (provider.DataSource == DataSourceType.PostgreSql)
+                {
+                    NpgsqlConnectionStringBuilder pgsql = new(provider.ConnectionString);
+
+                    if (!string.IsNullOrEmpty(pgsql.Password))
+                    {
+                        pgsql.Password = string.Empty;
+                    }
+
+                    return pgsql.ToString();
+                }
+
+                if (provider.DataSource == DataSourceType.Sqlite)
+                {
+                    SqliteConnectionStringBuilder sqlite = new(provider.ConnectionString);
+
+                    if (!string.IsNullOrEmpty(sqlite.Password))
+                    {
+                        sqlite.Password = string.Empty;
+                    }
+
+                    return sqlite.ToString();
+                }
+            }
+            catch
+            {
+                //NOTE: Ignore error - do nothing
+            }
+
+            return $"Connection string format error";
         }
 
         [HttpPut()]
