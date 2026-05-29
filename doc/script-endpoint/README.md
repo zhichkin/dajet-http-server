@@ -55,7 +55,7 @@ curl -v -X POST http://localhost:5000/script/test.djs -d @parameters.json -H "Co
 ```JSON
 [
   {
-    "Ссылка": "{927:643c709d-cacf-4048-11f1-4f9984f0927d",
+    "Ссылка": "{927:643c709d-cacf-4048-11f1-4f9984f0927d}",
     "Код": "1234567890",
     "Наименование": "Товар 1234567890"
   }
