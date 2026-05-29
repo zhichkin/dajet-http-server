@@ -47,4 +47,8 @@
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.8" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\dajet-http-model\dajet-http-model.csproj" />
+  </ItemGroup>
+
 </Project>

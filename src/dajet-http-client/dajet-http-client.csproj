@@ -22,4 +22,8 @@
     <PackageReference Include="DaJet.TypeSystem" Version="1.0.4" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\dajet-http-model\dajet-http-model.csproj" />
+  </ItemGroup>
+
 </Project>
