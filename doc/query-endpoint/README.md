@@ -51,8 +51,8 @@ curl -v -X POST http://localhost:5000/query -d @query.json -H "Content-Type: app
 {
   "type": "object",
   "properties": {
-    "success": {
-      "type": "boolean"
+    "database": {
+      "type": "string"
     },
     "script": {
       "type": "string"
