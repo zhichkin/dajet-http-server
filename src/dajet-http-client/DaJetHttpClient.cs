@@ -256,5 +256,38 @@ namespace DaJet.Http.Client
             
             return await response.Content.ReadAsStringAsync();
         }
+
+        public async Task<QueryResponse> ExecuteQuery(QueryRequest request)
+        {
+            string url = "/query";
+
+            string json = JsonSerializer.Serialize(request, JsonOptions);
+
+            StringContent content = new(json, Encoding.UTF8, "application/json");
+
+            HttpResponseMessage response = await _client.PostAsync(url, content);
+
+            QueryResponse result = await response.Content.ReadFromJsonAsync<QueryResponse>();
+
+            return result;
+        }
+        public async Task<QueryResponse> ExecuteScript(string path, Dictionary<string, object> parameters)
+        {
+            ArgumentNullException.ThrowIfNullOrEmpty(path);
+
+            string filePath = path.TrimStart('/').TrimStart('\\');
+
+            string url = string.Format("/script/{0}", filePath);
+
+            string json = JsonSerializer.Serialize(parameters, JsonOptions);
+
+            StringContent content = new(json, Encoding.UTF8, "application/json");
+
+            HttpResponseMessage response = await _client.PostAsync(url, content);
+
+            QueryResponse result = await response.Content.ReadFromJsonAsync<QueryResponse>();
+
+            return result;
+        }
     }
 }
