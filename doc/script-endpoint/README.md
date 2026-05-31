@@ -77,8 +77,13 @@ curl -v -X POST http://localhost:5000/script/test.djs -d @parameters.json -H "Co
       "type": "string"
     },
     "result": {
-      "type": "array",
-      "items": { "type": "object" }
+      "oneOf": [
+        { "type": "string" },
+        { "type": "number" },
+        { "type": "boolean" },
+        { "type": "object" },
+        { "type": "array", "items": { "type": "object" } },
+      ]
     }
   },
   "required": [ "success", "message", "result" ]
