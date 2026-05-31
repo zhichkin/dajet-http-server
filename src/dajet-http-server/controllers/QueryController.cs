@@ -103,21 +103,9 @@ namespace DaJet.Http.Server
             QueryResponse response = new()
             {
                 Success = true,
-                Message = string.Empty
+                Message = string.Empty,
+                Result = value
             };
-
-            if (value is null)
-            {
-                response.Result = "{}";
-            }
-            else if (value is string text)
-            {
-                response.Result = text;
-            }
-            else
-            {
-                response.Result = JsonSerializer.Serialize(value, value.GetType(), JsonOptions);
-            }
 
             string json = JsonSerializer.Serialize(response, JsonOptions);
 
@@ -249,19 +237,27 @@ namespace DaJet.Http.Server
 
             script.Statements.Add(new ReturnStatement()
             {
-                Expression = new FunctionExpression()
+                Expression = new VariableReference()
                 {
-                    Token = Token.UDF,
-                    Name = "JSON",
-                    Parameters =
-                    [
-                        new VariableReference()
-                        {
-                            Identifier = outputTable
-                        }
-                    ]
+                    Identifier = outputTable
                 }
             });
+
+            //script.Statements.Add(new ReturnStatement()
+            //{
+            //    Expression = new FunctionExpression()
+            //    {
+            //        Token = Token.UDF,
+            //        Name = "JSON",
+            //        Parameters =
+            //        [
+            //            new VariableReference()
+            //            {
+            //                Identifier = outputTable
+            //            }
+            //        ]
+            //    }
+            //});
 
             return script;
         }

@@ -269,6 +269,16 @@ namespace DaJet.Http.Client
 
             QueryResponse result = await response.Content.ReadFromJsonAsync<QueryResponse>();
 
+            if (result.Result is JsonElement element)
+            {
+                if (element.ValueKind == JsonValueKind.Array)
+                {
+                    json = element.ToString();
+
+                    result.Result = JsonSerializer.Deserialize<List<Dictionary<string, object>>>(json, JsonOptions);
+                }
+            }
+
             return result;
         }
         public async Task<QueryResponse> ExecuteScript(string path, Dictionary<string, object> parameters)
@@ -286,6 +296,18 @@ namespace DaJet.Http.Client
             HttpResponseMessage response = await _client.PostAsync(url, content);
 
             QueryResponse result = await response.Content.ReadFromJsonAsync<QueryResponse>();
+
+            if (result.Result is JsonElement element)
+            {
+                if (element.ValueKind == JsonValueKind.Object)
+                {
+                    result.Result = JsonSerializer.Deserialize<Dictionary<string, object>>(element.ToString(), JsonOptions);
+                }
+                else if (element.ValueKind == JsonValueKind.Array)
+                {
+                    result.Result = JsonSerializer.Deserialize<List<Dictionary<string, object>>>(element.ToString(), JsonOptions);
+                }
+            }
 
             return result;
         }
