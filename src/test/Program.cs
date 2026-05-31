@@ -158,7 +158,7 @@ namespace test
                 ["Код"] = "000000001"
             };
 
-            Task<QueryResponse> task = client.ExecuteScript("test1.djs", parameters);
+            Task<QueryResponse> task = client.ExecuteScript("test7.djs", parameters);
 
             task.Wait();
 

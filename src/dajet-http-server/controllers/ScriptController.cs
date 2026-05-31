@@ -57,6 +57,7 @@ namespace DaJet.Http.Server
             }
             catch (Exception exception)
             {
+                //string message = ExceptionHelper.GetErrorMessageAndStackTrace(exception);
                 result = CreateErrorResult(HttpStatusCode.BadRequest, exception.Message);
             }
 
@@ -84,20 +85,17 @@ namespace DaJet.Http.Server
             QueryResponse response = new()
             {
                 Success = true,
-                Message = string.Empty
+                Message = string.Empty,
+                Result = value
             };
 
-            if (value is null)
+            if (value is Entity entity)
             {
-                response.Result = "{}";
+                response.Result = entity.ToString();
             }
-            else if (value is string text)
+            else if (value is DateTime datetime)
             {
-                response.Result = text;
-            }
-            else
-            {
-                response.Result = JsonSerializer.Serialize(value, value.GetType(), JsonOptions);
+                response.Result = datetime.ToString("yyyy-MM-ddTHH:mm:ss");
             }
 
             string json = JsonSerializer.Serialize(response, JsonOptions);

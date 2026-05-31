@@ -8,7 +8,7 @@
     <AssemblyName>DaJet.Http.Server</AssemblyName>
     <AssemblyTitle>DaJet HTTP Server</AssemblyTitle>
     <Title>DaJet HTTP Server</Title>
-    <Version>4.0.6</Version>
+    <Version>4.0.7</Version>
     <Authors>Zhichkin</Authors>
     <Description>DaJet HTTP server (web api)</Description>
     <Copyright>Zhichkin © 2026</Copyright>
@@ -18,6 +18,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="scripts\test7.djs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="scripts\test6.djs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
