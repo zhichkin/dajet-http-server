@@ -18,6 +18,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="scripts\type-system.djs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="scripts\test7.djs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
