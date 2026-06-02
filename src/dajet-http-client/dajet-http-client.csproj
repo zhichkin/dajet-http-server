@@ -8,7 +8,7 @@
     <AssemblyName>DaJet.Http.Client</AssemblyName>
     <AssemblyTitle>DaJet HTTP Client</AssemblyTitle>
     <Title>DaJet HTTP Client</Title>
-    <Version>4.0.7</Version>
+    <Version>4.0.8</Version>
     <Authors>Zhichkin</Authors>
     <Description>DaJet HTTP Client (web api)</Description>
     <Copyright>Zhichkin © 2026</Copyright>
@@ -19,7 +19,7 @@
 
   <ItemGroup>
     <PackageReference Include="DaJet.Http.Model" Version="4.0.1" />
-    <PackageReference Include="DaJet.TypeSystem" Version="1.0.4" />
+    <PackageReference Include="DaJet.TypeSystem" Version="1.0.5" />
   </ItemGroup>
 
 </Project>
