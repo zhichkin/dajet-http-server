@@ -12,6 +12,7 @@ DECLARE @ЦелоеЧисло      integer  = 12345
 DECLARE @ДесятичноеЧисло decimal  = 12.34
 DECLARE @ДатаВремя       datetime = '2026-04-12T00:00:00'
 DECLARE @Строка          string   = 'Это строка'
+DECLARE @ДвоичныеДанные  binary   = 0x000000FF -- 4 байта
 DECLARE @Идентификатор   uuid     = '643c6b9d-cacf-4048-11f1-3ce54d7b5bf7'
 DECLARE @Ссылка          entity   -- Любая ссылка, полученная из базы данных
 DECLARE @СоставнойТип    union    -- Составной тип данных (вспомогательный)
