@@ -1,6 +1,7 @@
 using DaJet.Http.Model;
 using DaJet.Json;
 using DaJet.Scripting;
+using DaJet.Scripting.Model;
 using DaJet.TypeSystem;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
@@ -20,27 +21,23 @@ namespace DaJet.Http.Server
             WriteIndented = true,
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
         };
-
-        public ScriptController(RepositoryFactory factory)
+        public ScriptController()
         {
             JsonOptions.Converters.Add(new DictionaryJsonConverter());
         }
 
         [HttpPost("{**path}")]
-        public ActionResult ExecuteScript([FromRoute] string path, [FromBody] Dictionary<string, JsonElement> parameters)
+        public ContentResult ExecuteScript([FromRoute] string path, [FromBody] Dictionary<string, JsonElement> parameters)
         {
-            string filePath = Path.Combine(AppContext.BaseDirectory, "scripts", path);
+            string rootPath = Path.Combine(AppContext.BaseDirectory, "scripts");
+            
+            string fullPath = Path.GetFullPath(rootPath);
 
-            if (!System.IO.File.Exists(filePath))
+            string filePath = Path.GetFullPath(Path.Combine(rootPath, path));
+
+            if (!filePath.StartsWith(fullPath))
             {
-                return CreateErrorResult(HttpStatusCode.NotFound, "Script is not found");
-            }
-
-            string source;
-
-            using (StreamReader reader = new(filePath, Encoding.UTF8))
-            {
-                source = reader.ReadToEnd();
+                return CreateErrorResult(HttpStatusCode.Forbidden, "Access denied");
             }
 
             ContentResult result;
@@ -49,7 +46,9 @@ namespace DaJet.Http.Server
             {
                 Dictionary<string, object> input = GetInputFromParameters(parameters);
 
-                Interpreter executor = new(in source);
+                Script script = new ScriptBuilder().FromFile(in filePath).Build();
+
+                Interpreter executor = new(in script);
 
                 object value = executor.Execute(in input);
 
@@ -57,7 +56,6 @@ namespace DaJet.Http.Server
             }
             catch (Exception exception)
             {
-                //string message = ExceptionHelper.GetErrorMessageAndStackTrace(exception);
                 result = CreateErrorResult(HttpStatusCode.BadRequest, exception.Message);
             }
 

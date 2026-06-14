@@ -5,7 +5,7 @@
 DECLARE @Код     string
 DECLARE @Таблица array
 
-USE 'ms-test'
+USE 'MS_UNF'
 
   SELECT Ссылка, Код, Наименование
     INTO @Таблица

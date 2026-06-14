@@ -1,5 +1,6 @@
 using DaJet.Data;
 using DaJet.Http.Model;
+using DaJet.Utilities;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.Data.Sqlite;
 using MetadataCache = DaJet.Metadata.MetadataProvider;

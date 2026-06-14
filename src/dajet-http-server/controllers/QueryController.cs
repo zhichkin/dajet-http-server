@@ -68,6 +68,8 @@ namespace DaJet.Http.Server
 
                 Script model = AssembleQueryScript(request.Database, in query, in input);
 
+                model = new ScriptBuilder().FromScript(in model).Build();
+
                 Interpreter executor = new(in model);
 
                 object value = executor.Execute(in input);
@@ -227,7 +229,7 @@ namespace DaJet.Http.Server
                         };
                     }
 
-                    use.Statements.Statements.Add(select);
+                    use.Statements.Add(select);
 
                     break; // use only the first SELECT statement - ignore the rest
                 }
@@ -242,22 +244,6 @@ namespace DaJet.Http.Server
                     Identifier = outputTable
                 }
             });
-
-            //script.Statements.Add(new ReturnStatement()
-            //{
-            //    Expression = new FunctionExpression()
-            //    {
-            //        Token = Token.UDF,
-            //        Name = "JSON",
-            //        Parameters =
-            //        [
-            //            new VariableReference()
-            //            {
-            //                Identifier = outputTable
-            //            }
-            //        ]
-            //    }
-            //});
 
             return script;
         }

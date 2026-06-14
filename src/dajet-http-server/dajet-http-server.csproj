@@ -18,6 +18,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="scripts\nested\test.djs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="scripts\type-system.djs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -49,7 +52,7 @@
 
   <ItemGroup>
     <PackageReference Include="DaJet.Http.Model" Version="4.0.1" />
-    <PackageReference Include="DaJet.Interpreter" Version="1.0.3" />
+    <PackageReference Include="DaJet.Interpreter" Version="1.0.6" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="10.0.8" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.8" />
   </ItemGroup>
