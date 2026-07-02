@@ -23,11 +23,13 @@ namespace DaJet.Http.Server
         };
         public ScriptController()
         {
-            JsonOptions.Converters.Add(new DictionaryJsonConverter());
+            JsonOptions.Converters.Add(new EntityJsonConverter());
+            JsonOptions.Converters.Add(new DataTypeJsonConverter());
+            JsonOptions.Converters.Add(new DataObjectJsonConverter());
         }
 
         [HttpPost("{**path}")]
-        public ContentResult ExecuteScript([FromRoute] string path, [FromBody] Dictionary<string, JsonElement> parameters)
+        public async Task<ContentResult> ExecuteScript([FromRoute] string path)
         {
             string rootPath = Path.Combine(AppContext.BaseDirectory, "scripts");
             
@@ -40,12 +42,21 @@ namespace DaJet.Http.Server
                 return CreateErrorResult(HttpStatusCode.Forbidden, "Access denied");
             }
 
+            DataObject input;
+
+            try
+            {
+                input = await HttpContext.Request.GetParametersFromBody();
+            }
+            catch
+            {
+                return CreateErrorResult(HttpStatusCode.BadRequest, "Failed to get parameters from request body");
+            }
+
             ContentResult result;
 
             try
             {
-                Dictionary<string, object> input = GetInputFromParameters(parameters);
-
                 Script script = new ScriptBuilder().FromFile(in filePath).Build();
 
                 Interpreter executor = new(in script);
@@ -58,23 +69,6 @@ namespace DaJet.Http.Server
             {
                 result = CreateErrorResult(HttpStatusCode.BadRequest, exception.Message);
             }
-
-            return result;
-        }
-        private ContentResult CreateErrorResult(HttpStatusCode code, string message)
-        {
-            QueryResponse response = new()
-            {
-                Success = false,
-                Message = message,
-                Result = null
-            };
-
-            string json = JsonSerializer.Serialize(response, JsonOptions);
-
-            ContentResult result = Content(json, "application/json", Encoding.UTF8);
-
-            result.StatusCode = (int)code;
 
             return result;
         }
@@ -104,62 +98,22 @@ namespace DaJet.Http.Server
 
             return result;
         }
-        private static Dictionary<string, object> GetInputFromParameters(in Dictionary<string, JsonElement> parameters)
+        private ContentResult CreateErrorResult(HttpStatusCode code, string message)
         {
-            Dictionary<string, object> input = new();
-
-            if (parameters is null || parameters.Count == 0)
+            QueryResponse response = new()
             {
-                return input;
-            }
+                Success = false,
+                Message = message,
+                Result = null
+            };
 
-            foreach (var parameter in parameters)
-            {
-                string name = parameter.Key;
+            string json = JsonSerializer.Serialize(response, JsonOptions);
 
-                JsonElement value = parameter.Value;
+            ContentResult result = Content(json, "application/json", Encoding.UTF8);
 
-                if (value.ValueKind == JsonValueKind.True)
-                {
-                    input.Add(name, true);
-                }
-                else if (value.ValueKind == JsonValueKind.False)
-                {
-                    input.Add(name, false);
-                }
-                else if (value.ValueKind == JsonValueKind.Number)
-                {
-                    input.Add(name, value.GetDecimal());
-                }
-                else if (value.ValueKind == JsonValueKind.String)
-                {
-                    string text = value.GetString();
+            result.StatusCode = (int)code;
 
-                    if (Guid.TryParse(text, out Guid uuid))
-                    {
-                        input.Add(name, uuid);
-                    }
-                    else if (DateTime.TryParse(text, out DateTime datetime))
-                    {
-                        input.Add(name, datetime);
-                    }
-                    else if (text.StartsWith('{'))
-                    {
-                        if (!Entity.TryParse(text, out Entity entity))
-                        {
-                            throw new JsonException($"Input parameter '{name}' parse error. Incorrect value is {text}.");
-                        }
-
-                        input.Add(name, entity);
-                    }
-                    else
-                    {
-                        input.Add(name, text);
-                    }
-                }
-            }
-
-            return input;
+            return result;
         }
     }
 }

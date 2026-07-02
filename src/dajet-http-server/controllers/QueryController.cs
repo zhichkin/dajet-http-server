@@ -26,17 +26,35 @@ namespace DaJet.Http.Server
 
         public QueryController()
         {
-            JsonOptions.Converters.Add(new DictionaryJsonConverter());
+            JsonOptions.Converters.Add(new EntityJsonConverter());
+            JsonOptions.Converters.Add(new DataTypeJsonConverter());
+            JsonOptions.Converters.Add(new DataObjectJsonConverter());
         }
 
         [HttpPost("")]
-        public ActionResult ExecuteQuery([FromBody] QueryRequest request)
+        public async Task<ActionResult> ExecuteQuery()
         {
+            DataObject parameters;
+
+            try
+            {
+                parameters = await HttpContext.Request.GetParametersFromBody();
+            }
+            catch
+            {
+                return CreateErrorResult(HttpStatusCode.BadRequest, "Failed to get parameters from request body");
+            }
+
+            if (!(parameters.TryGetValue("database", out object value1) && value1 is string database))
+            {
+                return CreateErrorResult(HttpStatusCode.NotFound, $"Database name is not provided");
+            }
+
             MetadataProvider provider;
 
             try
             {
-                provider = MetadataCache.Get(request.Database);
+                provider = MetadataCache.Get(in database);
             }
             catch (Exception exception)
             {
@@ -45,28 +63,36 @@ namespace DaJet.Http.Server
 
             if (provider is null)
             {
-                return CreateErrorResult(HttpStatusCode.NotFound, $"Database '{request.Database}' is not found");
+                return CreateErrorResult(HttpStatusCode.NotFound, $"Database '{database}' is not found");
             }
 
-            if (string.IsNullOrWhiteSpace(request.Script))
+            if (!(parameters.TryGetValue("script", out object value2) && value2 is string script))
+            {
+                return CreateErrorResult(HttpStatusCode.NotFound, $"Script is not provided");
+            }
+
+            if (string.IsNullOrWhiteSpace(script))
             {
                 return CreateErrorResult(HttpStatusCode.BadRequest, "Script is empty");
             }
 
             Parser parser = new();
 
-            if (!parser.TryParse(request.Script, out Script query, out string error))
+            if (!parser.TryParse(in script, out Script query, out string error))
             {
                 return CreateErrorResult(HttpStatusCode.BadRequest, error);
+            }
+
+            if (!(parameters.TryGetValue("parameters", out object value3) && value3 is DataObject input))
+            {
+                return CreateErrorResult(HttpStatusCode.NotFound, $"Script parameters is not provided");
             }
 
             ContentResult result;
 
             try
             {
-                Dictionary<string, object> input = GetInputFromParameters(request.Parameters);
-
-                Script model = AssembleQueryScript(request.Database, in query, in input);
+                Script model = AssembleQueryScript(in database, in query, in input);
 
                 model = new ScriptBuilder().FromScript(in model).Build();
 
@@ -117,71 +143,11 @@ namespace DaJet.Http.Server
 
             return result;
         }
-        private static Dictionary<string, object> GetInputFromParameters(in Dictionary<string, object> parameters)
-        {
-            Dictionary<string, object> input = new();
-
-            if (parameters is null || parameters.Count == 0)
-            {
-                return input;
-            }
-
-            foreach (var parameter in parameters)
-            {
-                if (parameter.Value is not JsonElement value)
-                {
-                    break;
-                }
-
-                string name = parameter.Key;
-
-                if (value.ValueKind == JsonValueKind.True)
-                {
-                    input.Add(name, true);
-                }
-                else if (value.ValueKind == JsonValueKind.False)
-                {
-                    input.Add(name, false);
-                }
-                else if (value.ValueKind == JsonValueKind.Number)
-                {
-                    input.Add(name, value.GetDecimal());
-                }
-                else if (value.ValueKind == JsonValueKind.String)
-                {
-                    string text = value.GetString();
-
-                    if (Guid.TryParse(text, out Guid uuid))
-                    {
-                        input.Add(name, uuid);
-                    }
-                    else if (DateTime.TryParse(text, out DateTime datetime))
-                    {
-                        input.Add(name, datetime);
-                    }
-                    else if (text.StartsWith('{'))
-                    {
-                        if (!Entity.TryParse(text, out Entity entity))
-                        {
-                            throw new JsonException($"Input parameter '{name}' parse error. Incorrect value is {text}.");
-                        }
-
-                        input.Add(name, entity);
-                    }
-                    else
-                    {
-                        input.Add(name, text);
-                    }
-                }
-            }
-
-            return input;
-        }
-        private static Script AssembleQueryScript(in string database, in Script query, in Dictionary<string, object> parameters)
+        private static Script AssembleQueryScript(in string database, in Script query, in DataObject input)
         {
             Script script = new();
 
-            foreach (var parameter in parameters)
+            foreach (var parameter in input)
             {
                 DeclareStatement declare = new()
                 {
@@ -190,16 +156,7 @@ namespace DaJet.Http.Server
 
                 object value = parameter.Value;
 
-                if (value is bool) { declare.Type = DataType.Boolean; }
-                else if (value is decimal) { declare.Type = DataType.Decimal(); }
-                else if (value is DateTime) { declare.Type = DataType.DateTime; }
-                else if (value is string) { declare.Type = DataType.String(); }
-                else if (value is Guid) { declare.Type = DataType.Uuid(); }
-                else if (value is Entity) { declare.Type = DataType.Entity(); }
-                else
-                {
-                    continue; // Unsupported parameter type
-                }
+                declare.Type = DataType.FromType(value.GetType());
 
                 script.Statements.Add(declare);
             }
@@ -208,7 +165,7 @@ namespace DaJet.Http.Server
 
             script.Statements.Add(new DeclareStatement()
             {
-                Type = DataType.Array,
+                Type = DataType.Array(),
                 Identifier = outputTable
             });
 
