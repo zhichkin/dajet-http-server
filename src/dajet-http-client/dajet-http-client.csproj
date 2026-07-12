@@ -18,8 +18,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DaJet.Http.Model" Version="4.0.1" />
-    <PackageReference Include="DaJet.TypeSystem" Version="1.0.5" />
+    <PackageReference Include="DaJet.Http.Model" Version="4.0.2" />
+    <PackageReference Include="DaJet.TypeSystem" Version="1.0.11" />
   </ItemGroup>
 
 </Project>
