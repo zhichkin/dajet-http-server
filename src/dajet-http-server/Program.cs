@@ -1,4 +1,5 @@
 using DaJet.Data;
+using DaJet.Host;
 using DaJet.Http.Model;
 using DaJet.Utilities;
 using Microsoft.AspNetCore.Cors.Infrastructure;
@@ -19,6 +20,8 @@ namespace DaJet.Http.Server
             builder.Host.UseSystemd();
             builder.Host.UseWindowsService();
 
+            DaJetHost host = DaJetHost.Create("api");
+            builder.Services.AddSingleton(host);
             builder.Services.AddSingleton(new RepositoryFactory(in CONNECTION_STRING));
             builder.Services.AddControllers();
             builder.Services.AddCors(ConfigureCors);
@@ -32,6 +35,8 @@ namespace DaJet.Http.Server
             //app.UseAuthentication();
             //app.UseAuthorization();
             app.MapControllers();
+
+            host.Run();
 
             app.Run();
         }

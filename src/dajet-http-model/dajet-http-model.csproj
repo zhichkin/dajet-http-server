@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
     <AssemblyName>DaJet.Http.Model</AssemblyName>
-    <Version>4.0.1</Version>
+    <Version>4.0.2</Version>
     <Title>DaJet HTTP Domain Model</Title>
     <AssemblyTitle>DaJet HTTP Domain Model</AssemblyTitle>
     <Authors>Zhichkin</Authors>

@@ -4,6 +4,9 @@ namespace DaJet.Http.Model
 {
     public sealed class QueryResponse
     {
+        [JsonPropertyName("async")]
+        public bool IsLongRunning { get; set; }
+
         [JsonPropertyName("success")]
         public bool Success { get; set; }
 

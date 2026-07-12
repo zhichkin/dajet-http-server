@@ -311,5 +311,39 @@ namespace DaJet.Http.Client
 
             return result;
         }
+
+        public async void RunSseClient()
+        {
+            HttpClient client = new HttpClient();
+            client.Timeout = TimeSpan.FromSeconds(5);
+            string stockSymbol = "VTSAX";
+            string url = $"http://localhost:9000/stockpriceupdates/{stockSymbol}";
+
+            while (true)
+            {
+                try
+                {
+                    Console.WriteLine("Establishing connection");
+                    using (var streamReader = new StreamReader(await client.GetStreamAsync(url)))
+                    {
+                        while (!streamReader.EndOfStream)
+                        {
+                            var message = await streamReader.ReadLineAsync();
+                            Console.WriteLine($"Received price update: {message}");
+                        }
+                    }
+                }
+                catch (Exception ex)
+
+                {
+                    //Here you can check for 
+                    //specific types of errors before continuing
+                    //Since this is a simple example, i'm always going to retry
+                    Console.WriteLine($"Error: {ex.Message}");
+                    Console.WriteLine("Retrying in 5 seconds");
+                    await Task.Delay(TimeSpan.FromSeconds(5));
+                }
+            }
+        }
     }
 }
