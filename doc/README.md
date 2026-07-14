@@ -7,3 +7,4 @@
 - [Выполнение произвольных параметризованных запросов](../doc/query-endpoint)
 - [Выполнение параметризованных скриптов DaJet Script](../doc/script-endpoint)
 - [Таблицы настроек и итогов регистров](../doc/register-settings-and-totals)
+- [Сборка данных из нескольких источников данных](../doc/multiple-sources-result)
