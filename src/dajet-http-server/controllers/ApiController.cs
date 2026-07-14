@@ -4,13 +4,14 @@ using DaJet.Json;
 using DaJet.Scripting.Model;
 using DaJet.TypeSystem;
 using DaJet.Utilities;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
+using System.Net.ServerSentEvents;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Unicode;
-using System.Threading.Channels;
 
 namespace DaJet.Http.Server
 {
@@ -24,20 +25,42 @@ namespace DaJet.Http.Server
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
         };
         private readonly DaJetHost _host;
-        private readonly Channel<QueryResponse> _events;
-        public ApiController(DaJetHost host)
+        private readonly LongTaskResultStorage _storage;
+        public ApiController(DaJetHost host, LongTaskResultStorage storage)
         {
+            ArgumentNullException.ThrowIfNull(host, nameof(host));
+            ArgumentNullException.ThrowIfNull(storage, nameof(storage));
+
             _host = host;
-            _events = Channel.CreateBounded<QueryResponse>(new BoundedChannelOptions(64)
-            {
-                FullMode = BoundedChannelFullMode.DropOldest
-            });
+            _storage = storage;
 
             JsonOptions.Converters.Add(new EntityJsonConverter());
             JsonOptions.Converters.Add(new DataTypeJsonConverter());
             JsonOptions.Converters.Add(new DataObjectJsonConverter());
         }
-        
+
+        [HttpGet("monitor")]
+        public ContentResult GetRunningTasks()
+        {
+            List<RunningTaskStatus> tasks = _host.GetRunningTasks();
+
+            QueryResponse result = new()
+            {
+                Success = true,
+                Message = string.Empty,
+                Result = tasks,
+                IsLongRunning = false
+            };
+
+            string json = JsonSerializer.Serialize(result, JsonOptions);
+
+            ContentResult response = Content(json, "application/json", Encoding.UTF8);
+
+            response.StatusCode = (int)HttpStatusCode.OK;
+
+            return response;
+        }
+
         [HttpPost("{**path}")]
         public async Task<ContentResult> Execute([FromRoute] string path)
         {
@@ -62,7 +85,7 @@ namespace DaJet.Http.Server
             {
                 Task<object> task = _host.RunAsync(in script, in input);
 
-                _ = task.ContinueWith(SendLongTaskResponse, path);
+                _ = task.ContinueWith(StoreLongTaskResult, path);
 
                 return CreateLongTaskResult(task.Id);
             }
@@ -154,132 +177,171 @@ namespace DaJet.Http.Server
 
             return result;
         }
-
-        private void SendLongTaskResponse(Task<object> task, object state)
+        private void StoreLongTaskResult(Task<object> task, object state)
         {
             if (state is not string scriptPath)
             {
                 return;
             }
 
-            QueryResponse response = new()
+            QueryResponse result = new()
             {
-                Success = false,
-                Message = "message",
-                Result = null
+                IsLongRunning = true
             };
 
             if (task.IsCompletedSuccessfully)
             {
-                object value = task.Result;
-
-                if (value is not null)
+                result.Success = true;
+                result.Message = string.Empty;
+                result.Result = task.Result;
+                
+                if (result.Result is Entity entity)
                 {
-                    string json = JsonSerializer.Serialize(value, value.GetType(), JsonOptions);
-
-                    Console.WriteLine($"Task [{task.Id}] return value:");
-                    Console.WriteLine(json);
+                    result.Result = entity.ToString();
                 }
-                else
+                else if (result.Result is DateTime datetime)
                 {
-                    Console.WriteLine($"Task [{task.Id}] returned null value.");
+                    result.Result = datetime.ToString("yyyy-MM-ddTHH:mm:ss");
                 }
             }
             else if (task.IsCanceled)
             {
-                Console.WriteLine($"Task [{task.Id}] is canceled.");
+                result.Success = false;
+                result.Message = $"Task [{task.Id}] is canceled.";
+                result.Result = null;
             }
             else
             {
-                Console.WriteLine($"Task [{task.Id}] is faulted: {task.Exception?.InnerException?.Message}");
+                result.Success = false;
+                result.Message = $"Task [{task.Id}] is faulted: {task.Exception?.InnerException?.Message}";
+                result.Result = null;
             }
-
-            _ = _events.Writer.TryWrite(response);
+            
+            _storage.Store(task.Id, result);
         }
 
-        [HttpGet]
-        [Route("sse")]
-        public async Task ServerSentEvents()
+        [HttpPost("cancel/{taskId:int}")]
+        public ActionResult Cancel(int taskId)
         {
-            //1. Set content type
-            Response.StatusCode = 200;
-            Response.ContentType = "text/event-stream";
+            _host.Cancel(taskId);
 
-            StreamWriter streamWriter = new(Response.Body);
+            _storage.Delete(taskId);
 
-            while (!HttpContext.RequestAborted.IsCancellationRequested)
-            {
-                //2. Await something that generates messages
-                await Task.Delay(5000, HttpContext.RequestAborted);
-
-                //3. Write to the Response.Body stream
-                await streamWriter.WriteLineAsync($"{DateTime.Now} Looping");
-                await streamWriter.FlushAsync();
-
-            }
+            return Ok();
         }
 
-        //private async Task ObserveScriptCatalog()
-        //{
-        //    while (!_cancellationToken.IsCancellationRequested)
-        //    {
-        //        try
-        //        {
-        //            await ProcessScriptCatalogEvents();
-        //        }
-        //        catch (Exception error)
-        //        {
-        //            FileLogger.Default.Write(ExceptionHelper.GetErrorMessageAndStackTrace(error));
-        //        }
+        [HttpGet("result/pull/{taskId:int}")]
+        public ContentResult PullLongTaskResult(int taskId)
+        {
+            QueryResponse result;
 
-        //        try
-        //        {
-        //            FileLogger.Default.Write($"Script catalog watcher delay 30 seconds ...");
+            RunningTaskStatus status = _host.GetRunningTask(taskId);
 
-        //            await Task.Delay(TimeSpan.FromSeconds(30), _cancellationToken);
-        //        }
-        //        catch // (OperationCanceledException)
-        //        {
-        //            // do nothing - host shutdown requested
-        //        }
-        //    }
-        //}
+            if (status.Id != 0) // running
+            {
+                result = new QueryResponse()
+                {
+                    Success = false,
+                    Message = status.Status,
+                    Result = null,
+                    IsLongRunning = true
+                };
+            }
+            else if (!_storage.TryGetValue(taskId, out result))
+            {
+                result = new QueryResponse()
+                {
+                    Success = false,
+                    Message = $"Data is not available",
+                    Result = null,
+                    IsLongRunning = true
+                };
+            }
+            else
+            {
+                _storage.Delete(taskId);
+            }
 
-        //private async ValueTask ProcessScriptCatalogEvents()
-        //{
-        //    FileLogger.Default.Write("Waiting for file system events ...");
+            string json = JsonSerializer.Serialize(result, JsonOptions);
 
-        //    while (await _events.Reader.WaitToReadAsync(_cancellationToken))
-        //    {
-        //        FileLogger.Default.Write("Processing file system events ...");
+            ContentResult response = Content(json, "application/json", Encoding.UTF8);
 
-        //        while (_events.Reader.TryRead(out FileSystemEventArgs _event))
-        //        {
-        //            if (_cancellationToken.IsCancellationRequested)
-        //            {
-        //                return; // Сервис остановлен принудительно
-        //            }
+            response.StatusCode = (int)HttpStatusCode.OK;
 
-        //            if (_event.ChangeType == WatcherChangeTypes.Created)
-        //            {
-        //                FileLogger.Default.Write($"Created: {_event.FullPath}");
-        //            }
-        //            else if (_event.ChangeType == WatcherChangeTypes.Changed)
-        //            {
-        //                FileLogger.Default.Write($"Changed: {_event.FullPath}");
-        //            }
-        //            else if (_event.ChangeType == WatcherChangeTypes.Deleted)
-        //            {
-        //                FileLogger.Default.Write($"Deleted: {_event.FullPath}");
-        //            }
-        //            else if (_event.ChangeType == WatcherChangeTypes.Renamed)
-        //            {
-        //                FileLogger.Default.Write($"Renamed: {_event.FullPath}");
-        //            }
+            return response;
+        }
 
-        //            FileLogger.Default.Write($"Processed {_event.FullPath} successfully");
-        //        }
-        //    }
-        //}
+        [HttpGet("result/push/{taskId:int}")]
+        public ServerSentEventsResult<QueryResponse> PushLongTaskResult(int taskId)
+        {
+            return TypedResults.ServerSentEvents(GetLongTaskResult(taskId));
+        }
+        private async IAsyncEnumerable<SseItem<QueryResponse>> GetLongTaskResult(int taskId)
+        {
+            while (_host.GetRunningTask(taskId).Id > 0)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(1));
+            }
+
+            if (!_storage.TryGetValue(taskId, out QueryResponse result))
+            {
+                result = new QueryResponse()
+                {
+                    Success = true,
+                    Message = string.Empty,
+                    Result = null,
+                    IsLongRunning = true
+                };
+            }
+            else
+            {
+                _storage.Delete(taskId);
+            }
+
+            //string data = JsonSerializer.Serialize(result, JsonOptions);
+
+            yield return new SseItem<QueryResponse>(result, "long-task-result")
+            {
+                EventId = taskId.ToString()
+            };
+        }
     }
 }
+
+//Response.StatusCode = 200;
+//Response.ContentType = "text/event-stream";
+//Response.Headers.Append("Connection", "keep-alive");
+//Response.Headers.Append("Cache-Control", "no-cache");
+
+//if (!HttpContext.RequestAborted.IsCancellationRequested)
+//{
+//    if (!_store.TryGetValue(taskId, out QueryResponse result))
+//    {
+//        result = new QueryResponse()
+//        {
+//            Success = true,
+//            Message = $"Data is not available",
+//            Result = null,
+//            IsLongRunning = true
+//        };
+//    }
+
+//    string data = JsonSerializer.Serialize(result, JsonOptions);
+
+//    try
+//    {
+//        await Response.WriteAsync($"event: long-task-result\n");
+//        await Response.WriteAsync($"id: {taskId}\n");
+//        await Response.WriteAsync($"data: {data}\n\n");
+
+//        await Response.Body.FlushAsync();
+
+//        _store.Delete(taskId);
+//    }
+//    catch (Exception error)
+//    {
+//        string message = ExceptionHelper.GetErrorMessage(error);
+
+//        FileLogger.Default.Write($"[SSE] Task [{taskId}] {message}");
+//    }
+//}

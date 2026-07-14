@@ -22,7 +22,9 @@ namespace DaJet.Http.Server
 
             DaJetHost host = DaJetHost.Create("api");
             builder.Services.AddSingleton(host);
+            builder.Services.AddSingleton(new LongTaskResultStorage());
             builder.Services.AddSingleton(new RepositoryFactory(in CONNECTION_STRING));
+            
             builder.Services.AddControllers();
             builder.Services.AddCors(ConfigureCors);
 

@@ -175,7 +175,9 @@ namespace DaJet.Http.Server
             {
                 if (statement is SelectStatement select)
                 {
-                    if (select.Expression is SelectExpression expression)
+                    SelectExpression expression = GetSelectExpression(in select);
+
+                    if (expression is not null)
                     {
                         expression.Into = new IntoClause()
                         {
@@ -203,6 +205,20 @@ namespace DaJet.Http.Server
             });
 
             return script;
+        }
+        private static SelectExpression GetSelectExpression(in SelectStatement statement)
+        {
+            if (statement.Expression is SelectExpression select)
+            {
+                return select;
+            }
+            
+            if (statement.Expression is TableUnionOperator union)
+            {
+                return union.Expression1 as SelectExpression;
+            }
+
+            return null;
         }
     }
 }

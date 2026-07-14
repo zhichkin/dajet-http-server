@@ -22,7 +22,6 @@ namespace DaJet.Http.Client
         {
             JsonOptions.Converters.Add(new DataTypeJsonConverter());
             JsonOptions.Converters.Add(new DataObjectJsonConverter());
-            JsonOptions.Converters.Add(new DictionaryJsonConverter());
             JsonOptions.Converters.Add(new JsonStringEnumConverter<ColumnPurpose>());
             JsonOptions.Converters.Add(new JsonStringEnumConverter<PropertyPurpose>());
         }
@@ -312,38 +311,75 @@ namespace DaJet.Http.Client
             return result;
         }
 
-        public async void RunSseClient()
+        public async Task<QueryResponse> Execute(string path, DataObject parameters = null)
         {
-            HttpClient client = new HttpClient();
-            client.Timeout = TimeSpan.FromSeconds(5);
-            string stockSymbol = "VTSAX";
-            string url = $"http://localhost:9000/stockpriceupdates/{stockSymbol}";
+            ArgumentNullException.ThrowIfNullOrEmpty(path);
 
-            while (true)
+            string filePath = path.TrimStart('/').TrimStart('\\');
+
+            string url = string.Format("/api/{0}", filePath);
+
+            string json = JsonSerializer.Serialize(parameters, JsonOptions);
+
+            StringContent content = new(json, Encoding.UTF8, "application/json");
+
+            HttpResponseMessage response = await _client.PostAsync(url, content);
+
+            QueryResponse result = await response.Content.ReadFromJsonAsync<QueryResponse>(JsonOptions);
+
+            if (result.Result is JsonElement element)
             {
-                try
+                if (element.ValueKind == JsonValueKind.Object)
                 {
-                    Console.WriteLine("Establishing connection");
-                    using (var streamReader = new StreamReader(await client.GetStreamAsync(url)))
-                    {
-                        while (!streamReader.EndOfStream)
-                        {
-                            var message = await streamReader.ReadLineAsync();
-                            Console.WriteLine($"Received price update: {message}");
-                        }
-                    }
+                    result.Result = JsonSerializer.Deserialize<DataObject>(element.ToString(), JsonOptions);
                 }
-                catch (Exception ex)
-
+                else if (element.ValueKind == JsonValueKind.Array)
                 {
-                    //Here you can check for 
-                    //specific types of errors before continuing
-                    //Since this is a simple example, i'm always going to retry
-                    Console.WriteLine($"Error: {ex.Message}");
-                    Console.WriteLine("Retrying in 5 seconds");
-                    await Task.Delay(TimeSpan.FromSeconds(5));
+                    result.Result = JsonSerializer.Deserialize<List<DataObject>>(element.ToString(), JsonOptions);
                 }
             }
+
+            return result;
+        }
+        public async Task<QueryResponse> PullLongTaskResult(int taskId)
+        {
+            string url = string.Format("/api/result/pull/{0}", taskId);
+            
+            HttpResponseMessage response = await _client.GetAsync(url);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                string error = await response.Content.ReadAsStringAsync();
+
+                return new QueryResponse()
+                {
+                    Success = false,
+                    Message = error,
+                    Result = null,
+                    IsLongRunning = true
+                };
+            }
+
+            QueryResponse result = await response.Content.ReadFromJsonAsync<QueryResponse>();
+
+            return result;
         }
     }
 }
+
+//using var client = new HttpClient();
+//using var response = await client.GetAsync("https://api.example.com/stream",
+//    HttpCompletionOption.ResponseHeadersRead);
+
+//using var stream = await response.Content.ReadAsStreamAsync();
+
+//var parser = SseParser.Create(stream, (eventType, bytes) =>
+//{
+//    var json = Encoding.UTF8.GetString(bytes.Span);
+//    return JsonSerializer.Deserialize<MyDataType>(json);
+//});
+
+//await foreach (var item in parser.EnumerateAsync())
+//{
+//    Console.WriteLine($"Event: {item.EventType}, Data: {item.Data}");
+//}

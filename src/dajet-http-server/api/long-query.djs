@@ -1,5 +1,5 @@
 
---# LONG_TASK
+# LONG_TASK
 
 DECLARE @Код string
 PRIVATE @Таблица array
@@ -21,5 +21,7 @@ USE 'MS_UNF'
    WHERE НомерПоПорядку <= 5
 
 END
+
+SLEEP 30
 
 RETURN @Таблица

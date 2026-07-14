@@ -23,7 +23,7 @@ namespace test
         };
         static void Main(string[] args)
         {
-            JsonOptions.Converters.Add(new DictionaryJsonConverter());
+            JsonOptions.Converters.Add(new DataObjectJsonConverter());
 
             MetadataProvider.Add("MS_TEST", DataSourceType.SqlServer, in MS_TEST);
 
