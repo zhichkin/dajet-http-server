@@ -64,12 +64,6 @@ namespace DaJet.Http.Server
         [HttpPost("{**path}")]
         public async Task<ContentResult> Execute([FromRoute] string path)
         {
-            if (!_host.TryGetOrCreate(in path, out Script script, out string error))
-            {
-                FileLogger.Default.Write($"[API][ERROR][{path}] {error}");
-                return CreateErrorResult(HttpStatusCode.BadRequest, "Script is not found or invalid: see server log to find out more.");
-            }
-
             DataObject input;
 
             try
@@ -79,6 +73,12 @@ namespace DaJet.Http.Server
             catch
             {
                 return CreateErrorResult(HttpStatusCode.BadRequest, "Failed to get parameters from request body");
+            }
+
+            if (!_host.TryGetOrCreate(in path, in input, out Script script, out string error))
+            {
+                FileLogger.Default.Write($"[API][ERROR][{path}] {error}");
+                return CreateErrorResult(HttpStatusCode.BadRequest, "Script is not found or invalid: see server log to find out more.");
             }
 
             if (script.IsLongRunning)
