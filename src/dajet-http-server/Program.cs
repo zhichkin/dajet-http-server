@@ -20,8 +20,8 @@ namespace DaJet.Http.Server
             builder.Host.UseSystemd();
             builder.Host.UseWindowsService();
 
-            DaJetHost host = DaJetHost.Create("api");
-            builder.Services.AddSingleton(host);
+            DaJetHost api = DaJetHost.Create("api");
+            builder.Services.AddSingleton(api);
             builder.Services.AddSingleton(new LongTaskResultStorage());
             builder.Services.AddSingleton(new RepositoryFactory(in CONNECTION_STRING));
             
@@ -38,7 +38,7 @@ namespace DaJet.Http.Server
             //app.UseAuthorization();
             app.MapControllers();
 
-            host.Run();
+            api.Run();
 
             app.Run();
         }

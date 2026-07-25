@@ -3,7 +3,6 @@ using DaJet.Http.Model;
 using DaJet.Json;
 using DaJet.Scripting.Model;
 using DaJet.TypeSystem;
-using DaJet.Utilities;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
@@ -77,8 +76,7 @@ namespace DaJet.Http.Server
 
             if (!_host.TryGetOrCreate(in path, in input, out Script script, out string error))
             {
-                FileLogger.Default.Write($"[API][ERROR][{path}] {error}");
-                return CreateErrorResult(HttpStatusCode.BadRequest, "Script is not found or invalid: see server log to find out more.");
+                return CreateErrorResult(HttpStatusCode.BadRequest, error);
             }
 
             if (script.IsLongRunning)

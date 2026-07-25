@@ -57,7 +57,7 @@ namespace DaJet.Http.Server
 
             try
             {
-                Script script = new ScriptBuilder().FromFile(in filePath).Build();
+                Script script = new ScriptBuilder().FromFile(in filePath).Use(in input).Build();
 
                 Interpreter executor = new(in script);
 
