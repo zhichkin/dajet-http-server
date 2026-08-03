@@ -49,7 +49,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="DaJet.Host" Version="1.0.4" />
+    <PackageReference Include="DaJet.Host" Version="1.0.5" />
     <PackageReference Include="DaJet.Http.Model" Version="4.0.2" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="10.0.10" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.10" />

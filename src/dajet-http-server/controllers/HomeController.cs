@@ -1,4 +1,5 @@
 using DaJet.Data;
+using DaJet.Host;
 using DaJet.Http.Model;
 using DaJet.Json;
 using DaJet.Metadata;
@@ -25,9 +26,12 @@ namespace DaJet.Http.Server
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
         };
 
+        private readonly DaJetHost _host;
         private readonly DataSourceRepository _repository;
-        public HomeController(RepositoryFactory factory)
+        public HomeController(DaJetHost host, RepositoryFactory factory)
         {
+            _host = host;
+
             _repository = factory.Get<DataSourceRepository>();
 
             if (_repository is null)
@@ -54,7 +58,8 @@ namespace DaJet.Http.Server
                 Version = version is null
                 ? string.Empty
                 : $"{version.Major}.{version.Minor}.{version.Build}",
-                ServerTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                ServerTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                IsReadOnly = _host.ReadOnlyMode
             };
 
             string json = JsonSerializer.Serialize(status, JsonOptions);

@@ -5,5 +5,6 @@
         public string Name { get; set; }
         public string Version { get; set; }
         public string ServerTime { get; set; }
+        public bool IsReadOnly { get; set; }
     }
 }
