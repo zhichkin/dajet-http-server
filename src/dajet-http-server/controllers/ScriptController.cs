@@ -1,3 +1,4 @@
+using DaJet.Host;
 using DaJet.Http.Model;
 using DaJet.Json;
 using DaJet.Scripting;
@@ -21,8 +22,13 @@ namespace DaJet.Http.Server
             WriteIndented = true,
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
         };
-        public ScriptController()
+        private readonly DaJetHost _host;
+        public ScriptController(DaJetHost host)
         {
+            ArgumentNullException.ThrowIfNull(host, nameof(host));
+
+            _host = host;
+
             JsonOptions.Converters.Add(new EntityJsonConverter());
             JsonOptions.Converters.Add(new DataTypeJsonConverter());
             JsonOptions.Converters.Add(new DataObjectJsonConverter());
@@ -59,9 +65,7 @@ namespace DaJet.Http.Server
             {
                 Script script = new ScriptBuilder().FromFile(in filePath).Use(in input).Build();
 
-                Interpreter executor = new(in script);
-
-                object value = executor.Execute(in input);
+                object value = _host.Run(in script, in input);
 
                 result = CreateSuccessResult(in value);
             }

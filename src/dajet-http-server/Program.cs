@@ -41,7 +41,6 @@ namespace DaJet.Http.Server
             app.MapControllers();
 
             api.Run();
-
             app.Run();
         }
         private static bool UseReadOnlyMode(in string[] args)

@@ -1,3 +1,4 @@
+using DaJet.Host;
 using DaJet.Http.Model;
 using DaJet.Json;
 using DaJet.Metadata;
@@ -23,9 +24,13 @@ namespace DaJet.Http.Server
             WriteIndented = true,
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
         };
-
-        public QueryController()
+        private readonly DaJetHost _host;
+        public QueryController(DaJetHost host)
         {
+            ArgumentNullException.ThrowIfNull(host, nameof(host));
+
+            _host = host;
+
             JsonOptions.Converters.Add(new EntityJsonConverter());
             JsonOptions.Converters.Add(new DataTypeJsonConverter());
             JsonOptions.Converters.Add(new DataObjectJsonConverter());
@@ -47,7 +52,7 @@ namespace DaJet.Http.Server
 
             if (!(parameters.TryGetValue("database", out object value1) && value1 is string database))
             {
-                return CreateErrorResult(HttpStatusCode.NotFound, $"Database name is not provided");
+                return CreateErrorResult(HttpStatusCode.BadRequest, $"Database name is not provided");
             }
 
             MetadataProvider provider;
@@ -68,7 +73,7 @@ namespace DaJet.Http.Server
 
             if (!(parameters.TryGetValue("script", out object value2) && value2 is string script))
             {
-                return CreateErrorResult(HttpStatusCode.NotFound, $"Script is not provided");
+                return CreateErrorResult(HttpStatusCode.BadRequest, $"Script is not provided");
             }
 
             if (string.IsNullOrWhiteSpace(script))
@@ -78,7 +83,7 @@ namespace DaJet.Http.Server
 
             if (!(parameters.TryGetValue("parameters", out object value3) && value3 is DataObject input))
             {
-                return CreateErrorResult(HttpStatusCode.NotFound, $"Script parameters is not provided");
+                return CreateErrorResult(HttpStatusCode.BadRequest, $"Script parameters is not provided");
             }
 
             Parser parser = new();
@@ -88,7 +93,10 @@ namespace DaJet.Http.Server
                 return CreateErrorResult(HttpStatusCode.BadRequest, error);
             }
 
-            
+            if (!query.IsReadOnly)
+            {
+                return CreateErrorResult(HttpStatusCode.MethodNotAllowed, "Read-only mode violation");
+            }
 
             ContentResult result;
 
@@ -98,9 +106,7 @@ namespace DaJet.Http.Server
 
                 model = new ScriptBuilder().FromScript(in model).Build();
 
-                Interpreter executor = new(in model);
-
-                object value = executor.Execute(in input);
+                object value = _host.Run(in model, in input);
 
                 result = CreateSuccessResult(in value);
             }

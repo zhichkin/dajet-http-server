@@ -63,6 +63,17 @@ namespace DaJet.Http.Server
         [HttpPost("{**path}")]
         public async Task<ContentResult> Execute([FromRoute] string path)
         {
+            string rootPath = Path.Combine(AppContext.BaseDirectory, "api");
+
+            string fullPath = Path.GetFullPath(rootPath);
+
+            string filePath = Path.GetFullPath(Path.Combine(rootPath, path));
+
+            if (!filePath.StartsWith(fullPath))
+            {
+                return CreateErrorResult(HttpStatusCode.Forbidden, "Access denied");
+            }
+
             DataObject input;
 
             try
