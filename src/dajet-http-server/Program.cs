@@ -20,7 +20,9 @@ namespace DaJet.Http.Server
             builder.Host.UseSystemd();
             builder.Host.UseWindowsService();
 
-            DaJetHost api = DaJetHost.Create("api");
+            DaJetHost api = UseReadOnlyMode(in args)
+                ? DaJetHost.Create("api").ReadOnly()
+                : DaJetHost.Create("api");
             builder.Services.AddSingleton(api);
             builder.Services.AddSingleton(new LongTaskResultStorage());
             builder.Services.AddSingleton(new RepositoryFactory(in CONNECTION_STRING));
@@ -41,6 +43,21 @@ namespace DaJet.Http.Server
             api.Run();
 
             app.Run();
+        }
+        private static bool UseReadOnlyMode(in string[] args)
+        {
+            if (args is not null && args.Length > 0)
+            {
+                for (int i = 0; i < args.Length; i++)
+                {
+                    if (args[i] == "--readonly")
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
         private static void ConfigureCors(CorsOptions options)
         {

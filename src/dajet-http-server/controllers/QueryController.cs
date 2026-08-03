@@ -76,6 +76,11 @@ namespace DaJet.Http.Server
                 return CreateErrorResult(HttpStatusCode.BadRequest, "Script is empty");
             }
 
+            if (!(parameters.TryGetValue("parameters", out object value3) && value3 is DataObject input))
+            {
+                return CreateErrorResult(HttpStatusCode.NotFound, $"Script parameters is not provided");
+            }
+
             Parser parser = new();
 
             if (!parser.TryParse(in script, out Script query, out string error))
@@ -83,10 +88,7 @@ namespace DaJet.Http.Server
                 return CreateErrorResult(HttpStatusCode.BadRequest, error);
             }
 
-            if (!(parameters.TryGetValue("parameters", out object value3) && value3 is DataObject input))
-            {
-                return CreateErrorResult(HttpStatusCode.NotFound, $"Script parameters is not provided");
-            }
+            
 
             ContentResult result;
 

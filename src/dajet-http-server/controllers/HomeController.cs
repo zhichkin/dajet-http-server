@@ -55,11 +55,11 @@ namespace DaJet.Http.Server
             DaJetServerStatus status = new()
             {
                 Name = name.Name,
+                IsReadOnly = _host.ReadOnlyMode,
                 Version = version is null
                 ? string.Empty
                 : $"{version.Major}.{version.Minor}.{version.Build}",
-                ServerTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
-                IsReadOnly = _host.ReadOnlyMode
+                ServerTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
             };
 
             string json = JsonSerializer.Serialize(status, JsonOptions);
