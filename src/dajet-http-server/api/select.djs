@@ -11,6 +11,8 @@ USE 'MS_UNF'
 
   --DELETE Справочник.Номенклатура
 
+  --IF TRUE THEN PRINT 'TRUE' ELSE PRINT 'FALSE' END
+
 END
 
 RETURN @Таблица

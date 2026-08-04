@@ -95,7 +95,7 @@ namespace DaJet.Http.Server
 
             if (!query.IsReadOnly)
             {
-                return CreateErrorResult(HttpStatusCode.MethodNotAllowed, "Read-only mode violation");
+                return CreateErrorResult(HttpStatusCode.BadRequest, "Read-only mode violation");
             }
 
             ContentResult result;
@@ -179,28 +179,34 @@ namespace DaJet.Http.Server
 
             UseStatement use = new() { Source = database };
 
+            SelectExpression output = null;
+
             foreach (SyntaxNode statement in query.Statements)
             {
-                if (statement is SelectStatement select)
+                if (statement is not SelectStatement select)
                 {
-                    SelectExpression expression = GetSelectExpression(in select);
-
-                    if (expression is not null)
-                    {
-                        expression.Into = new IntoClause()
-                        {
-                            Value = new VariableReference()
-                            {
-                                Identifier = outputTable
-                            }
-                        };
-                    }
-
+                    throw new InvalidOperationException("Any statements, except SELECT, are not supported");
+                }
+                else
+                {
                     use.Statements.Add(select);
-
-                    break; // use only the first SELECT statement - ignore the rest
+                    
+                    output = GetSelectExpression(in select);
                 }
             }
+
+            if (output is null)
+            {
+                throw new InvalidOperationException("SELECT statement is missing");
+            }
+
+            output.Into = new IntoClause()
+            {
+                Value = new VariableReference()
+                {
+                    Identifier = outputTable
+                }
+            };
 
             script.Statements.Add(use);
 
