@@ -1,9 +1,4 @@
-using DaJet.Host;
 using DaJet.Http.Model;
-using DaJet.Json;
-using DaJet.Scripting;
-using DaJet.Scripting.Model;
-using DaJet.TypeSystem;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Text;
@@ -22,100 +17,24 @@ namespace DaJet.Http.Server
             WriteIndented = true,
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
         };
-        private readonly DaJetHost _host;
-        public ScriptController(DaJetHost host)
-        {
-            ArgumentNullException.ThrowIfNull(host, nameof(host));
-
-            _host = host;
-
-            JsonOptions.Converters.Add(new EntityJsonConverter());
-            JsonOptions.Converters.Add(new DataTypeJsonConverter());
-            JsonOptions.Converters.Add(new DataObjectJsonConverter());
-        }
+        public ScriptController() { }
 
         [HttpPost("{**path}")]
         public async Task<ContentResult> ExecuteScript([FromRoute] string path)
         {
-            string rootPath = Path.Combine(AppContext.BaseDirectory, "scripts");
-            
-            string fullPath = Path.GetFullPath(rootPath);
-
-            string filePath = Path.GetFullPath(Path.Combine(rootPath, path));
-
-            if (!filePath.StartsWith(fullPath))
-            {
-                return CreateErrorResult(HttpStatusCode.Forbidden, "Access denied");
-            }
-
-            DataObject input;
-
-            try
-            {
-                input = await HttpContext.Request.GetParametersFromBody();
-            }
-            catch
-            {
-                return CreateErrorResult(HttpStatusCode.BadRequest, "Failed to get parameters from request body");
-            }
-
-            ContentResult result;
-
-            try
-            {
-                Script script = new ScriptBuilder().FromFile(in filePath).Use(in input).Build();
-
-                object value = _host.Run(in script, in input);
-
-                result = CreateSuccessResult(in value);
-            }
-            catch (Exception exception)
-            {
-                result = CreateErrorResult(HttpStatusCode.BadRequest, exception.Message);
-            }
-
-            return result;
-        }
-        private ContentResult CreateSuccessResult(in object value)
-        {
-            QueryResponse response = new()
-            {
-                Success = true,
-                Message = string.Empty,
-                Result = value
-            };
-
-            if (value is Entity entity)
-            {
-                response.Result = entity.ToString();
-            }
-            else if (value is DateTime datetime)
-            {
-                response.Result = datetime.ToString("yyyy-MM-ddTHH:mm:ss");
-            }
-
-            string json = JsonSerializer.Serialize(response, JsonOptions);
-
-            ContentResult result = Content(json, "application/json", Encoding.UTF8);
-
-            result.StatusCode = (int)HttpStatusCode.OK;
-
-            return result;
-        }
-        private ContentResult CreateErrorResult(HttpStatusCode code, string message)
-        {
             QueryResponse response = new()
             {
                 Success = false,
-                Message = message,
-                Result = null
+                Message = "Deprecated: use /api endpoint instead.",
+                Result = null,
+                IsLongRunning = false
             };
 
             string json = JsonSerializer.Serialize(response, JsonOptions);
 
             ContentResult result = Content(json, "application/json", Encoding.UTF8);
 
-            result.StatusCode = (int)code;
+            result.StatusCode = (int)HttpStatusCode.Gone;
 
             return result;
         }

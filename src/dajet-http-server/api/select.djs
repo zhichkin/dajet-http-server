@@ -9,9 +9,7 @@ USE 'MS_UNF'
     FROM Справочник.Номенклатура
    WHERE Код = @Код
 
-  --DELETE Справочник.Номенклатура
-
-  --IF TRUE THEN PRINT 'TRUE' ELSE PRINT 'FALSE' END
+  --IF @Код = '' THEN RETURN @Таблица ELSE RETURN '@Код is empty' END
 
 END
 
