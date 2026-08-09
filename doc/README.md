@@ -9,3 +9,4 @@
 - [Таблицы настроек и итогов регистров](../doc/register-settings-and-totals)
 - [Сборка данных из нескольких источников данных](../doc/multiple-sources-result)
 - [Параметризация команды USE](../doc/parametrized-use)
+- [Вычисление остатков и оборотов регистров накопления](../doc/totals-and-turnovers)
