@@ -56,4 +56,4 @@ jobs:
             -p:ContainerBaseImage=mcr.microsoft.com/dotnet/aspnet:10.0 \
             -p:ContainerRegistry=docker.io \
             -p:ContainerRepository=zhichkin/dajet-http-server \
-            -p:ContainerImageTags="${{github.event.inputs.version}};latest"
+            -p:ContainerImageTags='${{github.event.inputs.version}};latest'
