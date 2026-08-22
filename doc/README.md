@@ -10,3 +10,4 @@
 - [Сборка данных из нескольких источников данных](../doc/multiple-sources-result)
 - [Параметризация команды USE](../doc/parametrized-use)
 - [Вычисление остатков и оборотов регистров накопления](../doc/totals-and-turnovers)
+- [Функции ```datetime```](../doc/datetime-functions)
