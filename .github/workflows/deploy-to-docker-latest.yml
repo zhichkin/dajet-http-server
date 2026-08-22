@@ -1,4 +1,4 @@
-name: Deploy to Docker Hub (Linux)
+name: Deploy latest to Docker Hub (Linux)
 
 on:
   workflow_dispatch:
