@@ -11,3 +11,4 @@
 - [Параметризация команды USE](../doc/parametrized-use)
 - [Вычисление остатков и оборотов регистров накопления](../doc/totals-and-turnovers)
 - [Функции ```datetime```](../doc/datetime-functions)
+- [Таблицы регистрации изменений планов обмена](../doc/change-tracking)
