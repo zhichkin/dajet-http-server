@@ -1,7 +1,11 @@
-name: Deploy latest to Docker Hub (Linux)
+name: Deploy to Docker Hub (tag only)
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version'
+        required: true
 
 env:
   DOTNET_TARGET: 'net10.0'
@@ -53,4 +57,4 @@ jobs:
             -p:ContainerBaseImage=mcr.microsoft.com/dotnet/aspnet:10.0 \
             -p:ContainerRegistry=docker.io \
             -p:ContainerRepository=zhichkin/dajet-http-server \
-            -p:ContainerImageTag=latest
+            -p:ContainerImageTag=${{github.event.inputs.version}}
