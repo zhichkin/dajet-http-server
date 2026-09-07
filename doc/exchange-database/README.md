@@ -80,8 +80,15 @@ END -- WHILE
 
 4. Запустить скрипт обмена данными.
 
+Используем запуск скрипта без параметров. Для этого передадим на сервер пустой объект JSON ```{}```.
+
+**Файл ```parameters.json```**
+```JSON
+{}
 ```
-curl -v -X POST http://localhost:5000/api/exchange-stream.djs -H "Content-Type: application/json; charset=utf-8"
+
+```
+curl -v -X POST http://localhost:5000/api/exchange-stream.djs -d @parameters.json -H "Content-Type: application/json; charset=utf-8"
 ```
 
 5. Проверить выполнение скрипта хостом DaJet.
