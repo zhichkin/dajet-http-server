@@ -32,6 +32,8 @@
 
 3. Опубликовать скрипт обмена данными в каталог ```api``` хоста DaJet.
 
+**Скрипт ```exchange-stream.djs```**
+
 ```SQL
 
 # LONG_TASK
@@ -56,32 +58,44 @@ WHILE TRUE
          USE 'PG_TEST'
             INSERT РегистрСведений.ВходящаяОчередь
             SELECT НомерСообщения = @Сообщение.НомерСообщения
-                 , ДатаВремя      = NOW()
+                 , ВремяПолучения = NOW()
                  , Отправитель    = @Сообщение.Отправитель
                  , ТипСообщения   = @Сообщение.ТипСообщения
                  , ТелоСообщения  = @Сообщение.ТелоСообщения
          END
 
          SET @Счётчик = @Счётчик + 1
+
+         PRINT 'Consumed ' + @Счётчик + ' messages.'
       END
 
    CATCH
       PRINT '[Обмен данными MS-PG] ' + ERROR_MESSAGE()
    END
 
-   PRINT '[Обмен данными MS-PG] Consumed ' + @Счётчик + ' messages.'
-
-   SLEEP 1
+   SLEEP 1 -- Пауза между опросами базы-источника в секундах
 
 END -- WHILE
 ```
 
 4. Запустить скрипт обмена данными.
 
+```
+curl -v -X POST http://localhost:5000/api/exchange-stream.djs -H "Content-Type: application/json; charset=utf-8"
+```
+
 5. Проверить выполнение скрипта хостом DaJet.
+
+```
+curl -v http://localhost:5000/api/monitor -H "Content-Type: application/json; charset=utf-8"
+```
 
 6. В базе-источнике записать сообщение в исходящий регистр.
 
 7. В базе-приёмнике проверить появление сообщения во входящем регистре.
 
 8. Остановить выполнение скрипта хостом DaJet.
+
+```
+curl -v -X POST http://localhost:5000/api/cancel/1 -H "Content-Type: application/json; charset=utf-8"
+```
