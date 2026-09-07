@@ -12,3 +12,5 @@
 - [Вычисление остатков и оборотов регистров накопления](../doc/totals-and-turnovers)
 - [Функции ```datetime```](../doc/datetime-functions)
 - [Таблицы регистрации изменений планов обмена](../doc/change-tracking)
+- [Выполнение длительных скриптов хостом DaJet](../doc/long-running-tasks)
+- [Настройка обмена между базами данных](../doc/exchange-database)
