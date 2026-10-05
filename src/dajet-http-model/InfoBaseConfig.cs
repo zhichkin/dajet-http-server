@@ -8,5 +8,6 @@
         public int YearOffset { get; set; }
         public string AppVersion { get; set; }
         public int PlatformVersion { get; set; }
+        public string DataLockingMode { get; set; }
     }
 }
