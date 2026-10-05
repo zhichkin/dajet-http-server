@@ -80,7 +80,8 @@ namespace DaJet.Http.Server
                     NamePrefix = string.IsNullOrEmpty(config.NamePrefix) ? string.Empty: config.NamePrefix,
                     YearOffset = config.YearOffset,
                     AppVersion = config.AppConfigVersion,
-                    PlatformVersion = config.CompatibilityVersion
+                    PlatformVersion = config.CompatibilityVersion,
+                    DataLockingMode = config.DataLockingMode.ToString()
                 });
             }
 

@@ -8,7 +8,7 @@
     <AssemblyName>DaJet.Http.Server</AssemblyName>
     <AssemblyTitle>DaJet HTTP Server</AssemblyTitle>
     <Title>DaJet HTTP Server</Title>
-    <Version>4.0.31</Version>
+    <Version>4.0.32</Version>
     <Authors>Zhichkin</Authors>
     <Description>DaJet HTTP server (web api)</Description>
     <Copyright>Zhichkin © 2026</Copyright>
@@ -19,6 +19,9 @@
 
   <ItemGroup>
     <Content Include="api\long-query.djs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="api\union.djs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="api\select.djs">
@@ -45,8 +48,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="DaJet.Host" Version="1.0.19" />
-    <PackageReference Include="DaJet.Http.Model" Version="4.0.3" />
+    <PackageReference Include="DaJet.Host" Version="1.0.20" />
+    <PackageReference Include="DaJet.Http.Model" Version="4.0.4" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="10.0.12" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.12" />
   </ItemGroup>
