@@ -3,7 +3,6 @@ using DaJet.Http.Client;
 using DaJet.Http.Model;
 using DaJet.Json;
 using DaJet.Metadata;
-using DaJet.Scripting;
 using DaJet.TypeSystem;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -28,7 +27,6 @@ namespace test
             MetadataProvider.Add("MS_TEST", DataSourceType.SqlServer, in MS_TEST);
 
             //TestHttpClient();
-            //ExecuteQuery();
             //PostExecuteQuery();
             PostExecuteScript();
         }
@@ -68,52 +66,6 @@ namespace test
             {
                 Console.WriteLine(name);
             }
-        }
-        private static void ExecuteQuery()
-        {
-            Dictionary<string, object> parameters = new()
-            {
-                { "Булево", true },
-                { "ЦелоеЧисло", 12345 },
-                { "БольшоеЧисло", 12345L },
-                { "ДесятичноеЧисло", 12.34M },
-                { "ДатаВремя", DateTime.Now },
-                { "Строка", "000000002" },
-                { "ДвоичноеЧисло", Convert.FromBase64String("DEADBEEF") },
-                { "Идентификатор", new Guid("41F517C5-BC81-45E6-A9E8-7A2C8F573117") },
-                { "ПустаяСсылка", Entity.Undefined },
-                { "Код", "000000001"}
-            };
-
-            string source =
-                "DECLARE @Код string " +
-                "DECLARE @Таблица array " +
-                "USE 'MS_TEST' " +
-                "SELECT Ссылка, Код, Наименование INTO @Таблица " +
-                "FROM Справочник.Номенклатура WHERE Код = @Код " +
-                "END " +
-                "RETURN JSON(@Таблица)";
-
-            Interpreter interpreter = new(in source);
-
-            object value = interpreter.Execute(in parameters);
-
-            string json;
-
-            if (value is null)
-            {
-                json = "Value is NULL";
-            }
-            else if (value is string text)
-            {
-                json = text;
-            }
-            else
-            {
-                json = JsonSerializer.Serialize(value, value.GetType(), JsonOptions);
-            }
-
-            Console.WriteLine(json);
         }
         private static void PostExecuteQuery()
         {
