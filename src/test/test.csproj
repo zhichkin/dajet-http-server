@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DaJet.Interpreter" Version="1.0.31" />
+    <PackageReference Include="DaJet.Interpreter" Version="1.0.33" />
   </ItemGroup>
 
   <ItemGroup>
