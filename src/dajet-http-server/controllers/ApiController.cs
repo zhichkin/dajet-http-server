@@ -232,9 +232,14 @@ namespace DaJet.Http.Server
         [HttpPost("cancel/{taskId:int}")]
         public ActionResult Cancel(int taskId)
         {
+            bool isRunning = _host.GetRunningTask(taskId).Id != 0;
+
             _host.Cancel(taskId);
 
-            _storage.Delete(taskId);
+            if (!isRunning)
+            {
+                _storage.Delete(taskId); // already finished: drop its unread result
+            }
 
             return Ok();
         }
