@@ -185,6 +185,8 @@ namespace DaJet.Http.Server
                 return BadRequest($"Обновление кэша '{name}' невозможно по причине: {error.Message}.");
             }
 
+            _host.Reset(); // Clear script cache
+
             return Ok();
         }
 
@@ -215,6 +217,8 @@ namespace DaJet.Http.Server
                 return BadRequest($"Регистрация '{record.Name}' невозможна по причине: {exception.Message}.");
             }
 
+            _host.Reset(); // Clear script cache
+
             if (!_repository.TrySave(in record, out string error))
             {
                 return BadRequest(error);
@@ -227,6 +231,8 @@ namespace DaJet.Http.Server
         public ActionResult DeleteDataSource([FromRoute] string name)
         {
             MetadataCache.Remove(in name);
+
+            _host.Reset(); // Clear script cache
 
             if (!_repository.TryDelete(in name, out string error))
             {
