@@ -1,6 +1,7 @@
 using DaJet.Host;
 using DaJet.Http.Model;
 using DaJet.Json;
+using DaJet.Scripting;
 using DaJet.Scripting.Model;
 using DaJet.TypeSystem;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -73,16 +74,18 @@ namespace DaJet.Http.Server
             {
                 return CreateErrorResult(HttpStatusCode.Forbidden, "Access denied");
             }
-
+            
             DataObject input;
 
             try
             {
-                input = await HttpContext.Request.GetParametersFromBody();
+                DefineStatement schema = _host.GetInputSchema(in path);
+
+                input = await HttpContext.Request.GetParametersFromBody(schema);
             }
-            catch
+            catch (Exception exception)
             {
-                return CreateErrorResult(HttpStatusCode.BadRequest, "Failed to get parameters from request body");
+                return CreateErrorResult(HttpStatusCode.BadRequest, exception.Message);
             }
 
             if (!_host.TryGetOrCreate(in path, in input, out Script script, out string error))

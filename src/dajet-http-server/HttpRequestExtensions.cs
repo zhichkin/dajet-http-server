@@ -1,4 +1,5 @@
 ﻿using DaJet.Json;
+using DaJet.Scripting.Model;
 using DaJet.TypeSystem;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -19,6 +20,21 @@ namespace DaJet.Http.Server
             {
                 Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
                 Converters = { new DataObjectJsonConverter() }
+            };
+            
+            return await JsonSerializer.DeserializeAsync<DataObject>(request.Body, options);
+        }
+        internal static async Task<DataObject> GetParametersFromBody(this HttpRequest request, DefineStatement schema)
+        {
+            if (request.ContentLength == 0)
+            {
+                return new DataObject();
+            }
+
+            JsonSerializerOptions options = new()
+            {
+                Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
+                Converters = { new DaJetJsonConverter(in schema) }
             };
 
             return await JsonSerializer.DeserializeAsync<DataObject>(request.Body, options);
