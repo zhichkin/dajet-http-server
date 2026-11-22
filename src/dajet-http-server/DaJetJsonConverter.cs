@@ -1,6 +1,4 @@
-﻿using Confluent.Kafka;
-using DaJet.Json;
-using DaJet.Scripting;
+﻿using DaJet.Json;
 using DaJet.Scripting.Model;
 using DaJet.TypeSystem;
 using System.Collections;
@@ -26,6 +24,7 @@ namespace DaJet.Http.Server
         {
             _default.Write(writer, source, options);
         }
+
         public override DataObject Read(ref Utf8JsonReader reader, Type type, JsonSerializerOptions options)
         {
             return ParseObject(ref reader);

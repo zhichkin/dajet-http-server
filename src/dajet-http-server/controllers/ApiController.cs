@@ -1,7 +1,6 @@
 using DaJet.Host;
 using DaJet.Http.Model;
 using DaJet.Json;
-using DaJet.Scripting;
 using DaJet.Scripting.Model;
 using DaJet.TypeSystem;
 using Microsoft.AspNetCore.Http.HttpResults;
