@@ -76,15 +76,11 @@ namespace DaJet.Http.Server
                 {
                     ReadString(ref reader, in target, in name, property.Type);
                 }
-                else if (reader.TokenType == JsonTokenType.StartObject)
-                {
-                    reader.Skip(); //TODO: ParseObject(ref reader);
-                }
                 else if (reader.TokenType == JsonTokenType.StartArray)
                 {
                     ParseArray(ref reader, in target, in name, property.Type);
                 }
-                else // Comment | None
+                else //TODO: JsonTokenType.StartObject
                 {
                     throw new JsonException($"Unexpected token '{reader.TokenType}'.");
                 }
@@ -190,28 +186,6 @@ namespace DaJet.Http.Server
                     throw new JsonException($"Property '{name}' of type 'uuid' got invalid value.");
                 }
             }
-            else if (declared.IsDecimal)
-            {
-                if (decimal.TryParse(value, out decimal numeric))
-                {
-                    target.SetValue(name, numeric);
-                }
-                else
-                {
-                    throw new JsonException($"Property '{name}' of type 'decimal' got invalid value.");
-                }
-            }
-            else if (declared.IsInteger && declared.Size == 8)
-            {
-                if (long.TryParse(value, out long integer))
-                {
-                    target.SetValue(name, integer);
-                }
-                else
-                {
-                    throw new JsonException($"Property '{name}' of type 'integer(8)' got invalid value.");
-                }
-            }
             else if (declared.IsEntity)
             {
                 if (Entity.TryParse(value, out Entity entity))
@@ -277,9 +251,9 @@ namespace DaJet.Http.Server
             else if (declared.IsBinary) { array = new List<byte[]>(); }
             else if (declared.IsUuid) { array = new List<Guid>(); }
             else if (declared.IsEntity) { array = new List<Entity>(); }
-            else
+            else //TODO: declared.IsObject
             {
-                reader.Skip(); return; //TODO: declared.IsObject
+                throw new JsonException($"Property '{name}' of type '{declared}' got invalid array value.");
             }
             
             while (reader.Read())
@@ -291,13 +265,25 @@ namespace DaJet.Http.Server
 
                 if (reader.TokenType == JsonTokenType.True)
                 {
-                    array.Add(true);
+                    if (declared.IsBoolean)
+                    {
+                        array.Add(true);
+                    }
+                    else
+                    {
+                        throw new JsonException($"Property '{name}' of type '{declared}' got invalid boolean value.");
+                    }
                 }
                 else if (reader.TokenType == JsonTokenType.False)
                 {
-                    array.Add(false);
-                    
-                    // throw new JsonException($"Property '{name}' of type '{declared}' got invalid boolean value.");
+                    if (declared.IsBoolean)
+                    {
+                        array.Add(false);
+                    }
+                    else
+                    {
+                        throw new JsonException($"Property '{name}' of type '{declared}' got invalid boolean value.");
+                    }
                 }
                 else if (reader.TokenType == JsonTokenType.Number)
                 {
@@ -309,11 +295,21 @@ namespace DaJet.Http.Server
                     {
                         if (declared.Size == 8)
                         {
-                            array.Add(reader.GetInt64());
+                            if (!reader.TryGetInt64(out long int64))
+                            {
+                                throw new JsonException($"Property '{name}' of type 'array(integer(8))' got invalid value.");
+                            }
+
+                            array.Add(int64);
                         }
                         else
                         {
-                            array.Add(reader.GetInt32());
+                            if (!reader.TryGetInt32(out int integer))
+                            {
+                                throw new JsonException($"Property '{name}' of type 'array(integer)' got invalid value.");
+                            }
+
+                            array.Add(integer);
                         }
                     }
                     else
@@ -351,28 +347,6 @@ namespace DaJet.Http.Server
                             throw new JsonException($"Property '{name}' of type 'array(uuid)' got invalid value.");
                         }
                     }
-                    else if (declared.IsDecimal)
-                    {
-                        if (decimal.TryParse(value, out decimal numeric))
-                        {
-                            array.Add(numeric);
-                        }
-                        else
-                        {
-                            throw new JsonException($"Property '{name}' of type 'array(decimal)' got invalid value.");
-                        }
-                    }
-                    else if (declared.IsInteger && declared.Size == 8)
-                    {
-                        if (long.TryParse(value, out long integer))
-                        {
-                            array.Add(integer);
-                        }
-                        else
-                        {
-                            throw new JsonException($"Property '{name}' of type 'array(integer(8))' got invalid value.");
-                        }
-                    }
                     else if (declared.IsEntity)
                     {
                         if (Entity.TryParse(value, out Entity entity))
@@ -388,13 +362,20 @@ namespace DaJet.Http.Server
                     {
                         byte[] binary;
 
-                        if (value.StartsWith("0x"))
+                        try
                         {
-                            binary = Convert.FromHexString(value[2..]);
+                            if (value.StartsWith("0x"))
+                            {
+                                binary = Convert.FromHexString(value[2..]);
+                            }
+                            else
+                            {
+                                binary = Convert.FromBase64String(value);
+                            }
                         }
-                        else
+                        catch
                         {
-                            binary = Convert.FromBase64String(value);
+                            throw new JsonException($"Property '{name}' of type 'array(binary)' got invalid value.");
                         }
 
                         array.Add(binary);
@@ -404,7 +385,7 @@ namespace DaJet.Http.Server
                         throw new JsonException($"Property '{name}' of type '{declared}' got invalid string value.");
                     }
                 }
-                else // Null | StartObject | StartArray | Comment | None
+                else //TODO: JsonTokenType.StartObject
                 {
                     throw new JsonException($"Reading array value got unexpected token '{reader.TokenType}'.");
                 }
