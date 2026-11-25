@@ -80,7 +80,11 @@ namespace DaJet.Http.Server
                 {
                     ParseArray(ref reader, in target, in name, property.Type);
                 }
-                else //TODO: JsonTokenType.StartObject
+                else if (reader.TokenType == JsonTokenType.StartObject)
+                {
+                    throw new JsonException($"Property '{name}' has unsupported type '{property.Type}'.");
+                }
+                else
                 {
                     throw new JsonException($"Unexpected token '{reader.TokenType}'.");
                 }
@@ -251,7 +255,11 @@ namespace DaJet.Http.Server
             else if (declared.IsBinary) { array = new List<byte[]>(); }
             else if (declared.IsUuid) { array = new List<Guid>(); }
             else if (declared.IsEntity) { array = new List<Entity>(); }
-            else //TODO: declared.IsObject
+            else if (declared.IsObject)
+            {
+                throw new JsonException($"Property '{name}' has unsupported type '{declared}'.");
+            }
+            else
             {
                 throw new JsonException($"Property '{name}' of type '{declared}' got invalid array value.");
             }
@@ -385,9 +393,17 @@ namespace DaJet.Http.Server
                         throw new JsonException($"Property '{name}' of type '{declared}' got invalid string value.");
                     }
                 }
-                else //TODO: JsonTokenType.StartObject
+                else if (reader.TokenType == JsonTokenType.StartArray)
                 {
-                    throw new JsonException($"Reading array value got unexpected token '{reader.TokenType}'.");
+                    throw new JsonException($"Reading property '{name}' array item got invalid array value.");
+                }
+                else if (reader.TokenType == JsonTokenType.StartObject)
+                {
+                    throw new JsonException($"Reading property '{name}' array item got invalid object value.");
+                }
+                else
+                {
+                    throw new JsonException($"Reading array item got unexpected token '{reader.TokenType}'.");
                 }
             }
 
